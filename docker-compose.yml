@@ -3,7 +3,7 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - "6000:3000"
     env_file: .env
     environment:
       - DB_URL=mongodb://mongo:27017/myapp

@@ -25,7 +25,7 @@ const connectToDatabase = async () => {
 const startServer = async () => {
   try {
     const app = await ServerApp();
-    await app.listen({ port: +PORT });
+    await app.listen({ port: +PORT, host: "0.0.0.0" });
     info(`Server running on port ${PORT}`);
   } catch (err) {
     error("Failed to start server:", err);
