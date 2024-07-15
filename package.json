@@ -4,11 +4,11 @@
     "description": "recive gmail notifications via telegram",
     "main": "index.js",
     "scripts": {
-        "build-server": "tsc && mkdir -p build && tscpaths -p tsconfig.json -s ./src -o ./build",
+        "build-server": "mkdir -p dist && tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",
         "build": "npm run clean && npm run build-server",
-        "clean": "rm -rf build",
+        "clean": "rm -rf dist",
         "heroku-postbuild": "npm run build",
-        "start": "node build/index.js",
+        "start": "node dist/index.js",
         "dev": "tsc-watch --onEmitDebounceMs 500 --onSuccess \"ts-node -r tsconfig-paths/register src/index.ts\""
     },
     "author": "akrava & Hormold",

@@ -1,6 +1,6 @@
 import "dotenv/config";
-import ServerApp from "./server/index";
-import { error, info } from "./service/logging";
+import ServerApp from "@server/index";
+import { error, info } from "@service/logging";
 import mongoose from "mongoose";
 
 const { SERVER_PATH, PORT, DB_URL } = process.env;

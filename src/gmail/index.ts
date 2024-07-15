@@ -1,4 +1,4 @@
-import { FindUserById, UpdateGmailAccount } from "@controller/user";
+import { UpdateGmailAccount } from "@controller/user";
 import { OAuth2Client } from "google-auth-library";
 import { google, gmail_v1 } from "googleapis";
 import { error } from "@service/logging";

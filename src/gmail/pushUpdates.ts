@@ -4,7 +4,7 @@ import { FindAll, SetChatsId, FindUserByEmailNew } from "@controller/user";
 import { bot } from "@telegram/index";
 import { getValue, setValue } from "@server/serverMap";
 import { processEmail } from "@ai/analyze";
-import { justSendMessage } from "./sendMessage";
+import { justSendMessage } from "@gmail/sendMessage";
 
 interface GmailHistoryEntry {
   email: string;

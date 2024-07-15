@@ -13,8 +13,8 @@ import deleteTokenCb, {
   description as deleteTokenCommand,
 } from "@commands/deleteToken";
 import { stage as authGmailStage } from "@commands/connectGmail";
-import blackListEmail from "./commands/blackList";
-import showFullText from "./commands/showFullText";
+import blackListEmail from "@commands/blackList";
+import showFullText from "@commands/showFullText";
 export const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN);
 
 bot.use(session());
