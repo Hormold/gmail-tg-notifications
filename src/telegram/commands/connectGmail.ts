@@ -5,9 +5,9 @@ import {
   authorizeUser,
   generateUrlToGetToken,
   getNewToken,
-  IAuthObject,
 } from "@gmail/index";
 import { getEmailAdress, watchMails } from "@gmail/index";
+import { IAuthObject } from "types";
 
 const gmailConnectScene = new Scenes.BaseScene<Scenes.SceneContext>(
   "connect_gmail"
@@ -116,7 +116,7 @@ const connectGmail: Middleware<Scenes.SceneContext> = async function (ctx) {
   }
 };
 
-export const desrciption: BotCommand = {
+export const description: BotCommand = {
   command: "connect_gmail",
   description: "Subscribe to watch new emails",
 };

@@ -30,7 +30,7 @@ const start: Middleware<Context> = async function (ctx) {
   }
 };
 
-export const desrciption: BotCommand = {
+export const description: BotCommand = {
   command: "start",
   description: "Start using this bot",
 };

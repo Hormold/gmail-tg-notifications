@@ -19,7 +19,7 @@ const help: Middleware<Context> = async function (ctx) {
   );
 };
 
-export const desrciption: BotCommand = {
+export const description: BotCommand = {
   command: "help",
   description: "How to use this bot",
 };

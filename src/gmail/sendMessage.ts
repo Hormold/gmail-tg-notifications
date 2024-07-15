@@ -1,5 +1,5 @@
 import { bot } from "@telegram/index";
-import { IMailObject } from ".";
+import { IMailObject } from "types";
 
 const MAX_MESSAGE_LENGTH = 3500;
 

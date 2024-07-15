@@ -1,5 +1,4 @@
 import "dotenv/config";
-import { bot as TelegramBot } from "./telegram/index";
 import ServerApp from "./server/index";
 import { error, info } from "./service/logging";
 import mongoose from "mongoose";

@@ -19,9 +19,13 @@ const main = async () => {
   app.get("/", async (request, reply) => {
     if (request.query["code"]) {
       // Return with html with <h1>
-      return `<h1>Code: ${request.query["code"]}</h1>`;
+      return reply
+        .type("text/html")
+        .send(
+          `<h1>Send this code back to bot:<br /><br />${request.query["code"]}</h1>`
+        );
     }
-    return `<h1>Nothing here</h1>`;
+    return `Nothing here`;
   });
 
   return app;

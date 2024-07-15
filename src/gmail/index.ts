@@ -5,22 +5,9 @@ import { error } from "@service/logging";
 import { fromString as htmlToText } from "html-to-text";
 import { toFormatedString } from "@service/date";
 import { IUser } from "@model/user";
+import { IAuthObject, IMailObject } from "types";
 
 const SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"];
-
-export interface IAuthObject {
-  oauth: OAuth2Client;
-  authorized: boolean;
-}
-
-export interface IMailObject {
-  id: string;
-  message: string;
-  attachments: { name: string; data: Buffer }[];
-  from: string | undefined;
-  title: string | undefined;
-  rawMessage: string;
-}
 
 const createOAuth2Client = () => {
   const { client_secret, client_id, redirect_uris } = JSON.parse(
@@ -214,6 +201,15 @@ export const getEmailById = async (
   }
 };
 
+function extractUnsubscribeUrl(header: string): string | null {
+  const urlRegex = /<(https?:\/\/[^>]+)>/;
+  const matches = header.match(urlRegex);
+  if (matches && matches.length > 1) {
+    return matches[1];
+  }
+  return null;
+}
+
 export const getEmails = async (
   email: IUser["gmailAccounts"][0],
   historyId: number,
@@ -290,6 +286,10 @@ export const getEmails = async (
         const from = mail.payload.headers.find((x) => x.name === "From");
         const title = mail.payload.headers.find((x) => x.name === "Subject");
         const rawMessage = mail.snippet || "";
+        // Check for List-Unsubscribe
+        const unsubscribeLink = mail.payload.headers.find(
+          (header) => header.name === "List-Unsubscribe"
+        )?.value;
 
         return {
           id: mail.id,
@@ -298,6 +298,9 @@ export const getEmails = async (
           from: from?.value,
           title: title?.value,
           rawMessage,
+          unsubscribeLink: unsubscribeLink
+            ? extractUnsubscribeUrl(unsubscribeLink)
+            : null,
         };
       })
     );

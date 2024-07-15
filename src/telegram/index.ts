@@ -1,16 +1,16 @@
 import { Telegraf, session, Scenes } from "telegraf";
 import { error } from "@service/logging";
-import startCb, { desrciption as startCommand } from "@commands/start";
+import startCb, { description as startCommand } from "@commands/start";
 import connectGmailCb, {
-  desrciption as connectGmailCommand,
+  description as connectGmailCommand,
 } from "@commands/connectGmail";
 import setChatsId, {
-  desrciption as setChatsIdCommand,
+  description as setChatsIdCommand,
 } from "@commands/setChatsId";
-import getId, { desrciption as getIdCommand } from "@commands/getId";
-import help, { desrciption as helpCommand } from "@commands/help";
+import getId, { description as getIdCommand } from "@commands/getId";
+import help, { description as helpCommand } from "@commands/help";
 import deleteTokenCb, {
-  desrciption as deleteTokenCommand,
+  description as deleteTokenCommand,
 } from "@commands/deleteToken";
 import { stage as authGmailStage } from "@commands/connectGmail";
 import blackListEmail from "./commands/blackList";

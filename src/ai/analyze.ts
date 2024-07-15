@@ -1,6 +1,6 @@
 import OpenAI from "openai";
-import { IMailObject } from "@gmail/index";
 import crypto from "crypto";
+import { IMailObject } from "types";
 
 interface AnalysisResult {
   category: string;

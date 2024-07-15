@@ -5,7 +5,7 @@ const getId: Middleware<Context> = async function (ctx) {
   ctx.reply(ctx.chat.id.toString());
 };
 
-export const desrciption: BotCommand = {
+export const description: BotCommand = {
   command: "get_id",
   description: "Get ID of current chat",
 };

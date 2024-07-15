@@ -15,7 +15,6 @@ const deleteToken = async function (ctx, id?: string) {
   }
 
   if (!id) {
-    // Print all
     for (const key in user.gmailAccounts) {
       const account = user.gmailAccounts[key];
       await ctx.reply(
@@ -54,7 +53,7 @@ const deleteToken = async function (ctx, id?: string) {
   }
 };
 
-export const desrciption: BotCommand = {
+export const description: BotCommand = {
   command: "delete_token",
   description: "Unsubscribe from email updates and delete Gmail token",
 };

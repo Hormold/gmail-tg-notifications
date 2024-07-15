@@ -63,7 +63,7 @@ const blackListEmail = async function (ctx, id: string, emailHash: string) {
   );
 };
 
-export const desrciption: BotCommand = {
+export const description: BotCommand = {
   command: "blacklist",
   description: "Add sender to blacklist",
 };
