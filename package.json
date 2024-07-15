@@ -11,7 +11,7 @@
         "start": "node build/index.js",
         "dev": "tsc-watch --onEmitDebounceMs 500 --onSuccess \"ts-node -r tsconfig-paths/register src/index.ts\""
     },
-    "author": "akrava",
+    "author": "akrava & Hormold",
     "license": "MIT",
     "repository": {
         "type": "git",

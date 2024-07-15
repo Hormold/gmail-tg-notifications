@@ -51,32 +51,24 @@ This project is a Telegram bot that provides notifications for new Gmail message
    - Use the following code for the function:
 
    ```javascript
-   const fetch = require('node-fetch');
+   const functions = require('@google-cloud/functions-framework');
+   functions.cloudEvent('helloPubSub', cloudEvent => {
+      fetch("https://<YOUR_PRIVATE_HOST>/ggle", {
+         method: "POST",
+         body: cloudEvent.data
+      })
+   });
 
-   exports.gmailPushHandler = async (message, context) => {
-     const data = JSON.parse(Buffer.from(message.data, 'base64').toString());
-     
-     try {
-       await fetch('YOUR_BOT_ENDPOINT/googlePushEndpoint', {
-         method: 'POST',
-         body: JSON.stringify({ data: { message: { data: message.data } } }),
-         headers: { 'Content-Type': 'application/json' },
-       });
-     } catch (error) {
-       console.error('Error forwarding push notification:', error);
-       throw new Error('Error processing push notification');
-     }
-   };
    ```
 
-5. Replace `YOUR_BOT_ENDPOINT` with your bot's API endpoint.
+5. Replace `YOUR_PRIVATE_HOST` with your bot's API endpoint.
 6. Deploy the function and note the function's URL.
 
 ### 3. Bot Setup
 
 1. Clone this repository:
    ```
-   git clone https://github.com/your-repo/gmail-notification-bot.git
+   git clone https://github.com/hormold/gmail-notification-bot.git
    cd gmail-notification-bot
    ```
 
