@@ -1,25 +1,50 @@
-import dotenv from "dotenv";
-dotenv.config();
-import { bot as TelegramBot } from "@telegram/index";
-import { app as ServerApp } from "@server/index";
-import { error, info } from "@service/logging";
-import Mongoose from "mongoose";
-import url from "url";
+import "dotenv/config";
+import { bot as TelegramBot } from "./telegram/index";
+import ServerApp from "./server/index";
+import { error, info } from "./service/logging";
+import mongoose from "mongoose";
 
-const connectionsOptions = {
-    useNewUrlParser: true, useCreateIndex: true, useFindAndModify: false,
-    useUnifiedTopology: true
+const { SERVER_PATH, PORT, DB_URL } = process.env;
+
+const MONGOOSE_OPTIONS = {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useFindAndModify: false,
+  useUnifiedTopology: true,
+} as const;
+
+const connectToDatabase = async () => {
+  try {
+    await mongoose.connect(DB_URL, MONGOOSE_OPTIONS);
+    info("Opened connection with db");
+  } catch (err) {
+    error("Failed to connect to database:", err);
+    throw err; // Re-throw to stop app initialization
+  }
 };
 
-const SERVER_PATH = process.env.SERVER_PATH;
-const WEBHOOK_TG_PATH = process.env.WEBHOOK_TG_PATH;
-const PORT = process.env.PORT;
-const DB_URL = process.env.DB_URL;
-const completeWebhookTgPath = url.resolve(SERVER_PATH, WEBHOOK_TG_PATH);
+const startServer = async () => {
+  try {
+    const app = await ServerApp();
+    await app.listen({ port: +PORT });
+    info(`Server running on port ${PORT}`);
+  } catch (err) {
+    error("Failed to start server:", err);
+    throw err;
+  }
+};
 
-Mongoose.connect(DB_URL, connectionsOptions)
-    .catch(err => err ? error(err) : info("Opened connection with db"))
-    .then(() => ServerApp.listen(PORT, () => info(`Running on port ${PORT}`)))
-    .then(() => TelegramBot.telegram.setWebhook(completeWebhookTgPath))
-    .then(res => res ? info("Tg bot started") : error(new Error("webhook error")))
-    .catch(err => error(err));
+const initializeApp = async () => {
+  try {
+    await connectToDatabase();
+    info(`Connected to database at ${DB_URL}`);
+    await startServer();
+    info(`Server started at ${SERVER_PATH}`);
+    info("Application initialized successfully");
+  } catch (err) {
+    error("Application initialization failed:", err);
+    process.exit(1);
+  }
+};
+
+initializeApp();

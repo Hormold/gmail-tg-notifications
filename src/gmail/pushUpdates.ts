@@ -1,164 +1,189 @@
-import Express, { Application } from "express";
-import bodyParser from "body-parser";
-// import mongoSanitize from "express-mongo-sanitize";
-import { OAuth2Client } from "google-auth-library";
 import { error, info } from "@service/logging";
-import { getEmails, IMailObject, authorizeUser, watchMails } from "@gmail/index";
-import { FindUserByEmail, FindAll, SetChatsId } from "@controller/user";
+import { getEmails, authorizeUser, watchMails } from "@gmail/index";
+import { FindAll, SetChatsId, FindUserByEmailNew } from "@controller/user";
 import { bot } from "@telegram/index";
-import { getValue, setValue, isValueSet } from "@server/serverMap";
+import { getValue, setValue } from "@server/serverMap";
+import { processEmail } from "@ai/analyze";
+import { justSendMessage } from "./sendMessage";
 
-const jsonBodyParser = bodyParser.json();
-const authClient = new OAuth2Client();
-export const router = Express.Router();
+interface GmailHistoryEntry {
+  email: string;
+  historyId: number;
+  timestamp: number;
+}
 
-router.post(process.env.GAPPS_PUSH_PATH, jsonBodyParser, async (req, res) => {
-    try {
-        const bearer = req.header("Authorization");
-        const [, token] = bearer.match(/Bearer (.*)/);
-        await authClient.verifyIdToken({
-            idToken: token,
-            audience: process.env.SERVER_PATH.replace(/https?:\/\/|\//g, ""),
-        });
-    } catch (e) {
-        error(e);
-        res.status(400).send("Invalid token");
-        return;
-    }
-    const message = Buffer.from(req.body.message.data, "base64").toString("utf-8");
-    const obj = JSON.parse(message);
-    // const emailAddress = (mongoSanitize.sanitize(obj.emailAddress) as string)
-    //     .toLowerCase().trim();
-    const emailAddress = (obj.emailAddress as string)
-        .toLowerCase().trim();
-    // const historyId = mongoSanitize.sanitize(obj.historyId);
-    const historyId = obj.historyId;
-    const app = req.app;
-    if (!addGmailUserWithHistoryId(app, emailAddress, historyId)) {
-        info("This update was skipped due to it has been already processed");
-        res.status(204).send();
-        return;
-    }
-    const user = await FindUserByEmail(emailAddress);
-    if (user) {
-        let response: false | IMailObject[];
-        try {
-            response = await getEmails(emailAddress, historyId);
-            if (response === false) {
-                throw new Error();
-            }
-        } catch (e) {
-            error(e);
-            res.status(204).send();
-            return;
-        }
-        for (const chatId of user.chatsId) {
-            for (const x of response) {
-                if (!x.message) {
-                    error(new Error("empty message"));
-                    continue;
-                } else {
-                    if (x.message.length > 3500) {
-                        // TODO send several messages
-                        x.message = x.message.substr(0, 3500);
-                        x.message = x.message + "\nMessage exceed max length";
-                    }
-                    try {
-                        const sent = await bot.telegram.sendMessage(
-                            chatId,
-                            x.message,
-                            { disable_web_page_preview: true }
-                        );
-                        x.attachments.forEach((y) => {
-                            bot.telegram.sendDocument(
-                                chatId,
-                                { filename: y.name, source: y.data },
-                                { reply_to_message_id: sent.message_id }
-                            );
-                        });
-                    } catch (err) {
-                        try {
-                            try {
-                                const temp = await bot.telegram.getChat(chatId);
-                                const botID = (await bot.telegram.getMe()).id;
-                                let needToDel = false;
-                                if (temp.type !== "private") {
-                                    needToDel = true;
-                                    const admins = await bot.telegram.getChatAdministrators(chatId);
-                                    const isUserAdmin = admins.some((y) => y.user.id === user.telegramID);
-                                    const isBotAdmin = admins.some((y) => y.user.id === botID);
-                                    if (isBotAdmin && isUserAdmin) {
-                                        needToDel = false;
-                                    }
-                                }
-                            } catch (e) {
-                                await SetChatsId(user.telegramID, user.chatsId.filter(i => i != chatId));
-                                console.log("deleted chatID");
-                            }
-                        } catch (e) {
-                            console.log("error while deleting caht id");
-                        }
-                        console.log("error with sending, deleted chat id");
-                        // console.log(err);
-                    }
-                }
-            }
-        }
-    }
-    res.status(204).send();
-    cleanGmailHistoryIdMap(app);
-});
+const EMAIL_HISTORY_ID_MAP_KEY = "emailHistoryIdMap";
 
-router.get(process.env.UPDATE_PUB_SUB_TOPIC_PATH, async (_req, res) => {
-    const users = await FindAll();
-    if (!Array.isArray(users)) {
-        res.status(204).send();
-        return;
+const handleChatError = async (user, chatId) => {
+  try {
+    const chat = await bot.telegram.getChat(chatId);
+    const botId = (await bot.telegram.getMe()).id;
+
+    if (chat.type !== "private") {
+      const admins = await bot.telegram.getChatAdministrators(chatId);
+      const isUserAdmin = admins.some(
+        (admin) => admin.user.id === user.telegramID
+      );
+      const isBotAdmin = admins.some((admin) => admin.user.id === botId);
+
+      if (!isBotAdmin || !isUserAdmin) {
+        throw new Error("Bot or user is not admin");
+      }
     }
-    for (const user of users) {
-        const obj = await authorizeUser(user.telegramID);
-        const tgId = user.telegramID.toString();
-        if (obj !== null) {
-            if (obj.authorized) {
-                if (!(await watchMails(user.telegramID, obj.oauth))) {
-                    error(new Error("couldn't watch mails"));
-                    bot.telegram.sendMessage(tgId, "Try to renew gmail subscription");
-                } else {
-                    info(`Successfully update subscription for ${tgId}`);
-                }
+  } catch (e) {
+    await SetChatsId(
+      user.telegramID,
+      user.chatsId.filter((id) => id !== chatId)
+    );
+    console.log("Deleted chatID due to error:", e);
+  }
+};
+
+export const googlePushEndpoint = async (req, res) => {
+  try {
+    const body = JSON.parse(req.body);
+
+    const { emailAddress, historyId } = JSON.parse(
+      Buffer.from(body.data.message.data, "base64").toString("utf-8")
+    );
+
+    const sanitizedEmail = emailAddress.toLowerCase().trim();
+
+    if (!(await addGmailUserWithHistoryId(sanitizedEmail, historyId))) {
+      info("This update was skipped as it has already been processed");
+      return res.status(204).send();
+    }
+
+    const user = await FindUserByEmailNew(sanitizedEmail);
+    if (!user) return res.status(204).send("User not found");
+
+    const gmailAccount = user.gmailAccounts.find(
+      (acc) => acc.email === sanitizedEmail
+    );
+    console.log(`Coming email for ${sanitizedEmail}`);
+    if (!gmailAccount) return res.status(204).send("Gmail account not found");
+
+    const emails = await getEmails(gmailAccount, historyId, user);
+    if (!emails) throw new Error("Failed to get emails");
+
+    await Promise.all(
+      user.chatsId.map(async (chatId) => {
+        for (const email of emails) {
+          // Blacklist check
+          if (
+            user.blackListEmails &&
+            user.blackListEmails
+              .map((email) => email.toLowerCase())
+              .includes(email.from.toLowerCase())
+          ) {
+            console.log(
+              `Email from blacklisted sender ${email.from}, skipping`
+            );
+            continue;
+          }
+          try {
+            //await sendMessageWithAttachments(chatId, email);
+            const aiProcessedEmail = await processEmail(email, sanitizedEmail);
+            if (aiProcessedEmail) {
+              await justSendMessage(chatId, aiProcessedEmail);
             } else {
-                error(new Error("bad token, not authorized"));
-                bot.telegram.sendMessage(tgId, "Renew gmail subscription");
+              console.log(`No AI processed email for ${email.id}`);
             }
+          } catch (err) {
+            console.log(`Error in sending message`, err, req.body);
+            await handleChatError(user, chatId);
+          }
         }
-    }
+      })
+    );
+
+    await cleanGmailHistoryIdMap();
     res.status(204).send();
-});
+  } catch (e) {
+    console.error(e);
+    res.status(500).send("Internal Server Error");
+  }
+};
 
+export const resubRoute = async (_req, res) => {
+  try {
+    const users = await FindAll();
+    if (!Array.isArray(users)) return res.status(204).send();
 
-const emailHistoryIdMapKey = "emailHistoryIdMap";
+    await Promise.all(
+      users.flatMap((user) =>
+        user.gmailAccounts.map(async (account) => {
+          const auth = await authorizeUser(account.token);
+          if (!auth) return;
 
-function addGmailUserWithHistoryId(app: Application, email: string, histryId: number) {
-    if (!isValueSet(app, emailHistoryIdMapKey)) {
-        setValue(app, emailHistoryIdMapKey, new Map<string, number>());
-    }
-    const current = email + histryId.toString();
-    const curTime =  new Date().getTime();
-    const mapGmailUserWithHistoryId = getValue<Map<string, number>>(app, emailHistoryIdMapKey);
-    if (mapGmailUserWithHistoryId.has(current)) {
-        return false;
-    } else {
-        mapGmailUserWithHistoryId.set(current, curTime);
-        return true;
-    }
-}
+          const tgId = user.telegramID.toString();
+          if (auth.authorized) {
+            const success = await watchMails(
+              user.telegramID,
+              account.email,
+              auth.oauth
+            );
+            if (!success) {
+              error(
+                "resubRoute",
+                new Error(`Couldn't watch mails for ${account.email}`)
+              );
+              await bot.telegram.sendMessage(
+                tgId,
+                `Try to renew gmail subscription for ${account.email}`
+              );
+            } else {
+              info(
+                `Successfully updated subscription for ${tgId} (${account.email})`
+              );
+            }
+          } else {
+            error(
+              "resubRoute",
+              new Error(`Bad token, not authorized for ${account.email}`)
+            );
+            await bot.telegram.sendMessage(
+              tgId,
+              `Renew gmail subscription for ${account.email}`
+            );
+          }
+        })
+      )
+    );
 
-function cleanGmailHistoryIdMap(app: Application) {
-    if (isValueSet(app, emailHistoryIdMapKey)) {
-        const map = getValue<Map<string, number>>(app, emailHistoryIdMapKey);
-        if (map.size > 25) {
-            const keysToDelete = Array.from(map.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10);
-            keysToDelete.forEach(x => map.delete(x[0]));
-        }
-    }
-}
+    res.status(204).send();
+  } catch (e) {
+    error(e);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+const addGmailUserWithHistoryId = async (
+  email: string,
+  historyId: number
+): Promise<boolean> => {
+  const entries: GmailHistoryEntry[] =
+    (await getValue(EMAIL_HISTORY_ID_MAP_KEY)) || [];
+  const current = `${email}${historyId}`;
+
+  if (entries.some((entry) => `${entry.email}${entry.historyId}` === current)) {
+    return false;
+  }
+
+  entries.push({ email, historyId, timestamp: Date.now() });
+  const updatedEntries = entries
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 25);
+  await setValue(EMAIL_HISTORY_ID_MAP_KEY, updatedEntries);
+  return true;
+};
+
+const cleanGmailHistoryIdMap = async (): Promise<void> => {
+  const entries = await getValue<GmailHistoryEntry[]>(EMAIL_HISTORY_ID_MAP_KEY);
+  if (entries && entries.length > 25) {
+    const updatedEntries = entries
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 15);
+    await setValue(EMAIL_HISTORY_ID_MAP_KEY, updatedEntries);
+  }
+};

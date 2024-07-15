@@ -1,33 +1,30 @@
-import Express, { Request, Response, NextFunction } from "express";
 import { bot } from "@telegram/index";
-import rateLimit from "express-rate-limit";
-// import mongoSanitize from "express-mongo-sanitize";
-import { router as gmailRouter } from "@gmail/index";
+import Fastify from "fastify";
+import { googlePushEndpoint, resubRoute } from "@gmail/pushUpdates";
 
-export const app = Express();
-
-app.set('trust proxy', 1);
-
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
+const app = Fastify({
+  logger: true,
 });
 
-app.use(limiter);
+const main = async () => {
+  const webhook = await bot.createWebhook({
+    domain: process.env.SERVER_PATH,
+    path: "/wh",
+  });
 
-// app.use(mongoSanitize());
+  app.post("/wh", webhook as any);
+  app.post("/ggle", googlePushEndpoint);
+  app.get("/resub", resubRoute);
 
-app.use(bot.webhookCallback(process.env.WEBHOOK_TG_PATH));
+  app.get("/", async (request, reply) => {
+    if (request.query["code"]) {
+      // Return with html with <h1>
+      return `<h1>Code: ${request.query["code"]}</h1>`;
+    }
+    return `<h1>Nothing here</h1>`;
+  });
 
-app.use(gmailRouter);
+  return app;
+};
 
-app.get(`/${process.env.GOOGLE_SITE_VERIFICATION}.html`, (_req, res) => {
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.send(`google-site-verification: ${process.env.GOOGLE_SITE_VERIFICATION}.html`);
-});
-
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    console.error(err);
-    console.trace();
-    res.status(500);
-});
+export default main;
