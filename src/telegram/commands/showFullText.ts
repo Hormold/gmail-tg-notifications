@@ -24,7 +24,8 @@ const getFullText = async function (ctx, id: string, emailHash: string) {
   if (!emailAccount) {
     return ctx.reply("Invalid email hash");
   }
-
+  const from = await getEmailById(emailAccount, id, "From");
+  const subject = await getEmailById(emailAccount, id, "Subject");
   const text = await getEmailById(emailAccount, id, "message");
 
   if (!text) {
@@ -36,7 +37,7 @@ const getFullText = async function (ctx, id: string, emailHash: string) {
       ? `${text.substr(0, 3500)}\nMessage exceeded max length`
       : text;
 
-  ctx.reply(message);
+  return `<b>Full message text from ${from} - ${subject}:</b>\n${message}`;
 };
 
 export default getFullText;

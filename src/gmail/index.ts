@@ -7,7 +7,7 @@ import { toFormatedString } from "@service/date";
 import { IUser } from "@model/user";
 import { IAuthObject, IMailObject } from "types";
 
-const SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"];
+const SCOPES = ["https://www.googleapis.com/auth/gmail.modify"];
 
 const createOAuth2Client = () => {
   const { client_secret, client_id, redirect_uris } = JSON.parse(
@@ -159,6 +159,29 @@ const asyncListHistory = (
   };
 
   return listHistory();
+};
+
+export const deleteEmailMessage = async (
+  email: IUser["gmailAccounts"][0],
+  emailId: string
+): Promise<boolean> => {
+  if (!email || email.token === " ") return false;
+
+  const oAuth2Client = createOAuth2Client();
+  oAuth2Client.setCredentials(JSON.parse(email.token));
+
+  const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
+
+  try {
+    const res = await gmail.users.messages.delete({
+      userId: "me",
+      id: emailId,
+    });
+    return res.status === 204;
+  } catch (e) {
+    error(e);
+    return false;
+  }
 };
 
 export const getEmailById = async (

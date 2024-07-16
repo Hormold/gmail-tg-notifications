@@ -36,8 +36,7 @@ const blackListEmail = async function (ctx, id: string, emailHash: string) {
   const sender = await getEmailById(emailAccount, id, "From");
 
   if (!sender) {
-    ctx.reply("Problem with fetching sender");
-    return;
+    return "Problem with fetching sender";
   }
 
   // Extract email from sender
@@ -50,17 +49,14 @@ const blackListEmail = async function (ctx, id: string, emailHash: string) {
       user.telegramID,
       user.blackListEmails.filter((e) => e !== email)
     );
-    ctx.reply(`Removed ${email} from blacklist`);
-    return;
+    return `Removed ${email} from blacklist`;
   }
 
   addSenderToBlackList(user.telegramID, [...user.blackListEmails, email]);
 
-  ctx.reply(
-    `Added ${email} to blacklist, now list contains ${
-      user.blackListEmails.length + 1
-    } emails`
-  );
+  return `Added ${email} to blacklist, now list contains ${
+    user.blackListEmails.length + 1
+  } emails`;
 };
 
 export const description: BotCommand = {

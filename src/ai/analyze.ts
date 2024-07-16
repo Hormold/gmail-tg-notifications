@@ -40,8 +40,8 @@ Provide the following information via structured output (function call):
 1. Category of the email: Personal, Work, Finance, Marketing, Bills, Other (specify)
 2. Brief summary of the content (no more than 20 words)
 3. Importance rating from 0 to 5, where:
-   0 - spam or useless marketing email (also useless rewards or promotions, etc)
-   1-2 - low importance (newsletters, notifications, etc)
+   0 - spam or useless marketing email (also newsletter, useless rewards or promotions, etc)
+   1-2 - low importance (notifications from services, etc)
    3-4 - medium importance (work-related, personal, etc)
    5 - high importance or requires immediate attention (urgent, important deadlines, etc)
 4. Concrete action steps (up to 3) based on the email content. Include specific deadlines or time frames if applicable.
@@ -49,7 +49,7 @@ Provide the following information via structured output (function call):
 Spam examples: newsletters, irrelevant marketing emails, or unsolicited messages.
 If this is login, password, otp code, etc - extract it and send to user.
 
-Consider that emails with good discounts or beneficial promotions may receive a higher rating.`,
+Consider that emails with good discounts or beneficial promotions may receive a higher rating. But you should realy mark spam as spam`,
         },
       ],
       functions: [
@@ -76,7 +76,7 @@ Consider that emails with good discounts or beneficial promotions may receive a 
                 type: "array",
                 items: { type: "string" },
                 description:
-                  "List of concrete action steps based on the email content, with deadlines if applicable or ignore if not needed",
+                  "List of concrete action steps based on the email content, with deadlines if applicable. Ignore if useless in this case!!",
               },
             },
             required: ["category", "summary", "importance"],
@@ -140,21 +140,20 @@ function createTelegramMessage(
 
   let actionSteps =
     analysis.actionSteps && analysis.actionSteps.length
-      ? analysis.actionSteps
+      ? `\n<b>Recommended Actions:</b>:\n` +
+        analysis.actionSteps
           .map((step, index) => `${index + 1}. ${step}`)
           .join("\n")
-      : "No specific action steps recommended";
+      : "";
 
   return {
-    text: `${escapeHTML(email.title)}
-${importanceEmoji} <b>${importanceText}</b> for <b>${emailTo}</b>
-<b>From:</b> ${escapeHTML(email.from)}
+    text: `${importanceEmoji} ✉️ <b>${escapeHTML(
+      email.from
+    )}</b> for <b>${emailTo}</b> (<i>${analysis.importance}/5</i>)
+${escapeHTML(email.title)} (${importanceText})
 <b>Category:</b> ${escapeHTML(analysis.category)}
-<i>Importance: ${analysis.importance}/5</i>
 
 ${escapeHTML(analysis.summary)}
-
-<b>Recommended Actions:</b>
 ${escapeHTML(actionSteps)}`,
     id: `${md5Email}_${email.id}`,
     unsubscribeLink: email.unsubscribeLink,

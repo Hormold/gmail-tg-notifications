@@ -24,7 +24,7 @@ export const justSendMessage = async (
         callback_data: `remove:${mailId}`,
       },
       {
-        text: "🔍 Get full",
+        text: "🔍 Show more",
         callback_data: `full:${mailId}`,
       },
     ],
