@@ -158,9 +158,8 @@ ${escapeHTML(analysis.summary)}
 <b>Recommended Actions:</b>
 ${escapeHTML(actionSteps)}
 
-Reply with /blacklist_${md5Email}_${
-    email.id
-  } to stop receiving messages from this sender.
+${email.unsubscribeLink ? `<b>Unsubscribe:</b> ${email.unsubscribeLink}` : ""}
+Blacklist: /blacklist_${md5Email}_${email.id}
 Full: /full_${md5Email}_${email.id}
 <b>==========================================</b>`;
 }
