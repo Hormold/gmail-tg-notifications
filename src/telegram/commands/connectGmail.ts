@@ -1,4 +1,8 @@
-import { AddGmailAccount, FindUserById } from "@controller/user";
+import {
+  AddGmailAccount,
+  FindUserById,
+  UpdateGmailAccount,
+} from "@controller/user";
 import { checkUser, BotCommand } from "@telegram/common";
 import { Middleware, Scenes, Context } from "telegraf";
 import {
@@ -82,19 +86,27 @@ gmailConnectScene.on("text", async (ctx) => {
 
     // Check if email is already set
     if (user.gmailAccounts.find((x) => x.email === email)) {
-      await ctx.reply("Email already set, skipping");
-      return ctx.scene.leave();
-    }
+      const emailUpdateStatus = await UpdateGmailAccount(
+        user.telegramID,
+        email,
+        { token }
+      );
 
-    const emailSetStatus = await AddGmailAccount(
-      user.telegramID,
-      email,
-      token,
-      null
-    );
-    if (!emailSetStatus) {
-      await ctx.reply("Error ocurred, couldn't subscribe");
-      return ctx.scene.leave();
+      if (!emailUpdateStatus) {
+        await ctx.reply("Error ocurred, couldn't subscribe");
+        return ctx.scene.leave();
+      }
+    } else {
+      const emailSetStatus = await AddGmailAccount(
+        user.telegramID,
+        email,
+        token,
+        null
+      );
+      if (!emailSetStatus) {
+        await ctx.reply("Error ocurred, couldn't subscribe");
+        return ctx.scene.leave();
+      }
     }
     if (await watchMails(user.telegramID, email, auth)) {
       await ctx.reply("Subscribed for new emails successfully");

@@ -55,7 +55,7 @@ This project is a Telegram bot that provides notifications for new Gmail message
    functions.cloudEvent('helloPubSub', cloudEvent => {
       fetch("https://<YOUR_PRIVATE_HOST>/ggle", {
          method: "POST",
-         body: cloudEvent.data
+         body: JSON.stringify(cloudEvent.data)
       })
    });
 
