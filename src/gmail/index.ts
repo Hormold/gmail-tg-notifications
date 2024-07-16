@@ -182,7 +182,7 @@ export const getEmailById = async (
 
     if (res.status !== 200) return false;
 
-    if (["from", "subject", "date"].includes(type)) {
+    if (["From", "Subject", "Date"].includes(type)) {
       const header = res.data.payload.headers.find((x) => x.name === type);
       return header?.value || false;
     } else {
