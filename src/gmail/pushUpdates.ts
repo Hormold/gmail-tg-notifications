@@ -42,9 +42,10 @@ const handleChatError = async (user, chatId) => {
 export const googlePushEndpoint = async (req, res) => {
   try {
     const body = JSON.parse(req.body);
+    console.log(`Debug, incomeing body`, body);
 
     const { emailAddress, historyId } = JSON.parse(
-      Buffer.from(body.data.message.data, "base64").toString("utf-8")
+      Buffer.from(body.message.data, "base64").toString("utf-8")
     );
 
     const sanitizedEmail = emailAddress.toLowerCase().trim();
