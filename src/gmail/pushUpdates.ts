@@ -41,7 +41,15 @@ const handleChatError = async (user, chatId) => {
 
 export const googlePushEndpoint = async (req, res) => {
   try {
-    const body = JSON.parse(req.body);
+    let body = req.body;
+    if (typeof body === "string") {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        console.error(`Error in parsing body`, e, req.body);
+        return res.status(400).send("Bad request");
+      }
+    }
     console.log(`Debug, incomeing body`, body);
 
     const { emailAddress, historyId } = JSON.parse(
