@@ -58,7 +58,7 @@ gmailConnectScene.command("new", async (ctx) => {
   await ctx.reply("Enter token:");
   ctx.scene.session.state = obj;
 });
-
+gmailConnectScene.command("cancel", Scenes.Stage.leave<Scenes.SceneContext>());
 gmailConnectScene.leave((ctx) => ctx.reply("Gmail config finished, exiting"));
 
 gmailConnectScene.on("text", async (ctx) => {
@@ -68,56 +68,61 @@ gmailConnectScene.on("text", async (ctx) => {
     return ctx.scene.leave();
   }
   const obj = ctx.scene.session.state as IAuthObject;
-  const { oAuth2Client: auth, token } = await getNewToken(
-    obj.oauth,
-    ctx.message.text
-  );
+  try {
+    const { oAuth2Client: auth, token } = await getNewToken(
+      obj.oauth,
+      ctx.message.text
+    );
 
-  if (auth === null) {
-    ctx.reply("Error ocurred, bad token");
+    if (auth === null) {
+      ctx.reply("Error ocurred, bad token");
+      return ctx.scene.leave();
+    } else {
+      await ctx.reply("Successfully authorized");
+      const email = await getEmailAdress(auth);
+      if (!email) {
+        await ctx.reply("Error ocurred, couldn't get email");
+        return ctx.scene.leave();
+      }
+
+      // Check if email is already set
+      if (user.gmailAccounts.find((x) => x.email === email)) {
+        const emailUpdateStatus = await UpdateGmailAccount(
+          user.telegramID,
+          email,
+          { token }
+        );
+
+        if (!emailUpdateStatus) {
+          await ctx.reply("Error ocurred, couldn't subscribe");
+          return ctx.scene.leave();
+        }
+      } else {
+        const emailSetStatus = await AddGmailAccount(
+          user.telegramID,
+          email,
+          token,
+          null
+        );
+        if (!emailSetStatus) {
+          await ctx.reply("Error ocurred, couldn't subscribe");
+          return ctx.scene.leave();
+        }
+      }
+      if (await watchMails(user.telegramID, email, auth)) {
+        await ctx.reply("Subscribed for new emails successfully");
+        return ctx.scene.leave();
+      } else {
+        await ctx.reply("Error ocurred, couldn't subscribe");
+        return ctx.scene.leave();
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    ctx.reply("Error ocurred, couldn't subscribe. Try again: /connect_gmail");
     return ctx.scene.leave();
-  } else {
-    await ctx.reply("Successfully authorized");
-    const email = await getEmailAdress(auth);
-    if (!email) {
-      await ctx.reply("Error ocurred, couldn't get email");
-      return ctx.scene.leave();
-    }
-
-    // Check if email is already set
-    if (user.gmailAccounts.find((x) => x.email === email)) {
-      const emailUpdateStatus = await UpdateGmailAccount(
-        user.telegramID,
-        email,
-        { token }
-      );
-
-      if (!emailUpdateStatus) {
-        await ctx.reply("Error ocurred, couldn't subscribe");
-        return ctx.scene.leave();
-      }
-    } else {
-      const emailSetStatus = await AddGmailAccount(
-        user.telegramID,
-        email,
-        token,
-        null
-      );
-      if (!emailSetStatus) {
-        await ctx.reply("Error ocurred, couldn't subscribe");
-        return ctx.scene.leave();
-      }
-    }
-    if (await watchMails(user.telegramID, email, auth)) {
-      await ctx.reply("Subscribed for new emails successfully");
-      return ctx.scene.leave();
-    } else {
-      await ctx.reply("Error ocurred, couldn't subscribe");
-      return ctx.scene.leave();
-    }
   }
 });
-gmailConnectScene.command("cancel", Scenes.Stage.leave<Scenes.SceneContext>());
 
 export const stage = new Scenes.Stage<Scenes.SceneContext>([gmailConnectScene]);
 
