@@ -3,13 +3,47 @@ import { IMailObject } from "types";
 
 const MAX_MESSAGE_LENGTH = 3500;
 
-export const justSendMessage = async (chatId: number, message: string) => {
+export const justSendMessage = async (
+  chatId: number,
+  message: string,
+  mailId: string,
+  unsubscribeLink?: string
+) => {
   if (!message) {
     throw new Error("Empty message");
+  }
+  // with emoji all buttons!
+  const buttons = [
+    [
+      {
+        text: "🚫 Blacklist",
+        callback_data: `blacklist:${mailId}`,
+      },
+      {
+        text: "🗑 Remove",
+        callback_data: `remove:${mailId}`,
+      },
+      {
+        text: "🔍 Get full",
+        callback_data: `full:${mailId}`,
+      },
+    ],
+  ] as any;
+
+  if (unsubscribeLink) {
+    buttons.push([
+      {
+        text: "🔇 Unsubscribe",
+        url: unsubscribeLink,
+      },
+    ]);
   }
 
   const sent = await bot.telegram.sendMessage(chatId, message, {
     parse_mode: "HTML",
+    reply_markup: {
+      inline_keyboard: buttons,
+    },
   });
   return sent;
 };

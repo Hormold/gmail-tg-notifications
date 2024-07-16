@@ -56,6 +56,18 @@ export const googlePushEndpoint = async (req, res) => {
       Buffer.from(body.message.data, "base64").toString("utf-8")
     );
 
+    // Limit for one historyId in 5 minutes
+    const rateLimit = await getValue(`${emailAddress}:${historyId}`);
+    if (rateLimit) {
+      console.log(`Rate limit for ${emailAddress}:${historyId}`);
+      return res.status(204).send();
+    }
+    await setValue(
+      `${emailAddress}:${historyId}`,
+      true,
+      new Date(Date.now() + 5 * 60 * 1000)
+    );
+
     const sanitizedEmail = emailAddress.toLowerCase().trim();
 
     if (!(await addGmailUserWithHistoryId(sanitizedEmail, historyId))) {
@@ -90,11 +102,22 @@ export const googlePushEndpoint = async (req, res) => {
             );
             continue;
           }
+
+          if (email.from.trim().toLowerCase() === sanitizedEmail) {
+            console.log(`Email from self, skipping`);
+            continue;
+          }
+
           try {
-            //await sendMessageWithAttachments(chatId, email);
+            //await sendMessageWithAttachments(chatId, email); // Legacy
             const aiProcessedEmail = await processEmail(email, sanitizedEmail);
             if (aiProcessedEmail) {
-              await justSendMessage(chatId, aiProcessedEmail);
+              await justSendMessage(
+                chatId,
+                aiProcessedEmail.text,
+                aiProcessedEmail.id,
+                aiProcessedEmail.unsubscribeLink
+              );
             } else {
               console.log(`No AI processed email for ${email.id}`);
             }
@@ -182,17 +205,17 @@ const addGmailUserWithHistoryId = async (
   entries.push({ email, historyId, timestamp: Date.now() });
   const updatedEntries = entries
     .sort((a, b) => b.timestamp - a.timestamp)
-    .slice(0, 25);
+    .slice(0, 100);
   await setValue(EMAIL_HISTORY_ID_MAP_KEY, updatedEntries);
   return true;
 };
 
 const cleanGmailHistoryIdMap = async (): Promise<void> => {
   const entries = await getValue<GmailHistoryEntry[]>(EMAIL_HISTORY_ID_MAP_KEY);
-  if (entries && entries.length > 25) {
+  if (entries && entries.length > 100) {
     const updatedEntries = entries
       .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 15);
+      .slice(0, 100);
     await setValue(EMAIL_HISTORY_ID_MAP_KEY, updatedEntries);
   }
 };

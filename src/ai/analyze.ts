@@ -103,13 +103,13 @@ function createTelegramMessage(
   email: IMailObject,
   emailTo: string,
   analysis: AnalysisResult
-): string {
+): { text: string; id: string; unsubscribeLink: string | null } | null {
   let importanceEmoji = "";
   let importanceText = "";
 
   switch (analysis.importance) {
     case 0:
-      return ""; // Don't create a message for spam
+      return null;
     case 1:
       importanceEmoji = "⚪️";
       importanceText = "Low importance";
@@ -145,23 +145,20 @@ function createTelegramMessage(
           .join("\n")
       : "No specific action steps recommended";
 
-  return `<b>==========================================</b>
+  return {
+    text: `${escapeHTML(email.title)}
 ${importanceEmoji} <b>${importanceText}</b> for <b>${emailTo}</b>
 <b>From:</b> ${escapeHTML(email.from)}
 <b>Category:</b> ${escapeHTML(analysis.category)}
-<b>Subject:</b> ${escapeHTML(email.title)}
+<i>Importance: ${analysis.importance}/5</i>
 
 ${escapeHTML(analysis.summary)}
 
-<i>Importance: ${analysis.importance}/5</i>
-
 <b>Recommended Actions:</b>
-${escapeHTML(actionSteps)}
-
-${email.unsubscribeLink ? `<b>Unsubscribe:</b> ${email.unsubscribeLink}` : ""}
-Blacklist: /blacklist_${md5Email}_${email.id}
-Full: /full_${md5Email}_${email.id}
-<b>==========================================</b>`;
+${escapeHTML(actionSteps)}`,
+    id: `${md5Email}_${email.id}`,
+    unsubscribeLink: email.unsubscribeLink,
+  };
 }
 
 function escapeHTML(text: string): string {
