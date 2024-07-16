@@ -164,7 +164,7 @@ const asyncListHistory = (
 export const getEmailById = async (
   email: IUser["gmailAccounts"][0],
   emailId: string,
-  type: "from" | "subject" | "date" | "message"
+  type: "From" | "Subject" | "Date" | "message"
 ): Promise<string | false> => {
   if (!email || email.token === " ") return false;
 

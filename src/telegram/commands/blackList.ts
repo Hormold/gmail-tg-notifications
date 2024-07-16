@@ -33,7 +33,7 @@ const blackListEmail = async function (ctx, id: string, emailHash: string) {
     }
   }
 
-  const sender = await getEmailById(emailAccount, id, "from");
+  const sender = await getEmailById(emailAccount, id, "From");
 
   if (!sender) {
     ctx.reply("Problem with fetching sender");
