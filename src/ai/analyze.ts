@@ -140,7 +140,7 @@ function createTelegramMessage(
 
   let actionSteps =
     analysis.actionSteps && analysis.actionSteps.length
-      ? `\n<b>Recommended Actions:</b>:\n` +
+      ? `\n<b>Recommended Actions:</b>\n` +
         analysis.actionSteps
           .map((step, index) => `${index + 1}. ${step}`)
           .join("\n")
@@ -154,7 +154,7 @@ ${escapeHTML(email.title)} (${importanceText})
 <b>Category:</b> ${escapeHTML(analysis.category)}
 
 ${escapeHTML(analysis.summary)}
-${escapeHTML(actionSteps)}`,
+${actionSteps}`,
     id: `${md5Email}_${email.id}`,
     unsubscribeLink: email.unsubscribeLink,
   };
