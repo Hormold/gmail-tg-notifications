@@ -184,6 +184,50 @@ export const deleteEmailMessage = async (
   }
 };
 
+export const getEmailDetailsById = async (
+  email: IUser["gmailAccounts"][0],
+  emailId: string
+) => {
+  if (!email) return false;
+
+  const oAuth2Client = createOAuth2Client();
+  oAuth2Client.setCredentials(JSON.parse(email.token));
+
+  const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
+
+  try {
+    const res = await gmail.users.messages.get({
+      userId: "me",
+      id: emailId,
+      format: "FULL",
+    });
+
+    if (res.status !== 200) return false;
+    let emailText = res.data.snippet;
+    if (res.data.payload.parts) {
+      const htmlParts = res.data.payload.parts.filter((x) =>
+        x.mimeType.includes("text/html")
+      );
+      const message = htmlParts.reduce(
+        (prev, cur) => prev + base64ToString(cur.body.data),
+        ""
+      );
+      emailText = htmlToText(message);
+    }
+
+    return {
+      from: res.data.payload.headers.find((x) => x.name === "From")?.value,
+      subject: res.data.payload.headers.find((x) => x.name === "Subject")
+        ?.value,
+      date: res.data.payload.headers.find((x) => x.name === "Date")?.value,
+      message: emailText,
+    };
+  } catch (e) {
+    error(`getEmailDetailsById`, e);
+    return false;
+  }
+};
+
 export const getEmailById = async (
   email: IUser["gmailAccounts"][0],
   emailId: string,

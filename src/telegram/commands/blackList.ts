@@ -2,17 +2,7 @@ import { checkUser, BotCommand } from "@telegram/common";
 import { getEmailById } from "@gmail/index";
 import { addSenderToBlackList } from "@controller/user";
 import crypto from "crypto";
-
-const emailRegex = /(?:<?\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b>?)/i;
-
-function extractEmail(input: string): string | null {
-  const match = input.match(emailRegex);
-  if (match) {
-    // Remove < > if present
-    return match[0].replace(/[<>]/g, "");
-  }
-  return null;
-}
+import { extractEmail } from "@service/utils";
 
 const blackListEmail = async function (ctx, id: string, emailHash: string) {
   const user = await checkUser(ctx);

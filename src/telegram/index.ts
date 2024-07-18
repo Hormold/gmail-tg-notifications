@@ -56,7 +56,8 @@ bot.on("callback_query", async (ctx) => {
       break;
     case "full":
       const text = await showFullText(ctx, mailId, emailHash);
-      await ctx.editMessageText(text, { parse_mode: "HTML" });
+      if (text) await ctx.editMessageText(text, { parse_mode: "HTML" });
+      else await ctx.answerCbQuery("Error in deletion, try again later");
       break;
     default:
       break;

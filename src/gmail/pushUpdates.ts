@@ -5,6 +5,7 @@ import { bot } from "@telegram/index";
 import { getValue, setValue } from "@server/serverMap";
 import { processEmail } from "@ai/analyze";
 import { justSendMessage } from "@gmail/sendMessage";
+import { extractEmail } from "@service/utils";
 
 interface GmailHistoryEntry {
   email: string;
@@ -103,7 +104,9 @@ export const googlePushEndpoint = async (req, res) => {
             continue;
           }
 
-          if (email.from.trim().toLowerCase() === sanitizedEmail) {
+          if (
+            extractEmail(email.from.trim().toLowerCase()) === sanitizedEmail
+          ) {
             console.log(`Email from self, skipping`);
             continue;
           }
@@ -119,7 +122,9 @@ export const googlePushEndpoint = async (req, res) => {
                 aiProcessedEmail.unsubscribeLink
               );
             } else {
-              console.log(`No AI processed email for ${email.id}`);
+              console.log(
+                `No AI processed email for ${email.id}, looks like this is a spam`
+              );
             }
           } catch (err) {
             console.log(`Error in sending message`, err, req.body);
