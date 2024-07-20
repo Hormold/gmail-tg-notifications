@@ -61,6 +61,7 @@ export const googlePushEndpoint = async (req, res) => {
       warning(`Rate limit for ${emailAddress}:${historyId}`);
       return res.status(204).send();
     }
+
     await setValue(
       `${emailAddress}:${historyId}`,
       true,
@@ -84,7 +85,10 @@ export const googlePushEndpoint = async (req, res) => {
     }
 
     const user = await FindUserByEmailNew(sanitizedEmail);
-    if (!user) return res.status(204).send("User not found");
+    if (!user) {
+      warning(`User not found for ${sanitizedEmail}`);
+      return res.status(204).send("User not found");
+    }
 
     const gmailAccount = user.gmailAccounts.find(
       (acc) => acc.email === sanitizedEmail
@@ -101,9 +105,19 @@ export const googlePushEndpoint = async (req, res) => {
       throw new Error("Failed to get emails");
     }
 
+    success(
+      `All checks passed for ${sanitizedEmail}, now processing emails... (${emails.length} to ${user.chatsId.length} chats)`
+    );
+
     await Promise.all(
       user.chatsId.map(async (chatId) => {
         for (const email of emails) {
+          const rateLimit = await getValue(`${emailAddress}:${historyId}`);
+          if (rateLimit) {
+            warning(`Rate limit for ${emailAddress}:${historyId}`);
+            continue;
+          }
+
           // Blacklist check
           if (
             user.blackListEmails &&
