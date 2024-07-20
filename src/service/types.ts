@@ -25,8 +25,7 @@ export interface AnalysisResult {
   category: string;
   summary: string;
   importance: number;
-  actionLinkUrl?: string;
-  actionLinkText?: string;
+  importantUrls?: { url: string; text: string }[];
   actionSteps?: string[];
 }
 
@@ -34,6 +33,15 @@ export interface TelegramMessageObject {
   text: string;
   id: string;
   unsubscribeLink?: string;
-  actionLink?: string;
-  actionLinkText?: string;
+  importantUrls?: { url: string; text: string }[];
+}
+
+export interface BotCommand {
+  description: string;
+  command: string;
+}
+
+export interface Chat {
+  type: string;
+  id: number;
 }

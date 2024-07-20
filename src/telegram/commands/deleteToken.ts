@@ -1,7 +1,8 @@
 import { Context, MiddlewareFn } from "telegraf";
 import { RemoveGmailAccount } from "@controller/user";
-import { checkUser, BotCommand } from "@telegram/common";
+import { checkUser } from "@telegram/common";
 import { authorizeUser, stopNotifications } from "@gmail/index";
+import { BotCommand } from "@service/types";
 
 const deleteToken = async function (ctx, id?: string) {
   const user = await checkUser(ctx);

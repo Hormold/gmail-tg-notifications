@@ -1,8 +1,9 @@
-import { checkUser, BotCommand } from "@telegram/common";
+import { checkUser } from "@telegram/common";
 import { getEmailById } from "@gmail/index";
 import { addSenderToBlackList } from "@controller/user";
 import crypto from "crypto";
 import { extractEmail } from "@service/utils";
+import { BotCommand } from "@service/types";
 
 const blackListEmail = async function (ctx, id: string, emailHash: string) {
   const user = await checkUser(ctx);

@@ -3,7 +3,7 @@ import {
   FindUserById,
   UpdateGmailAccount,
 } from "@controller/user";
-import { checkUser, BotCommand } from "@telegram/common";
+import { checkUser } from "@telegram/common";
 import { Middleware, Scenes, Context } from "telegraf";
 import {
   authorizeUser,
@@ -11,7 +11,7 @@ import {
   getNewToken,
 } from "@gmail/index";
 import { getEmailAdress, watchMails } from "@gmail/index";
-import { IAuthObject } from "@service/types";
+import { BotCommand, IAuthObject } from "@service/types";
 
 const gmailConnectScene = new Scenes.BaseScene<Scenes.SceneContext>(
   "connect_gmail"

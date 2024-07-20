@@ -44,13 +44,15 @@ export const justSendMessage = async (
     ]);
   }
 
-  if (message.actionLink && message.actionLinkText) {
-    buttons.push([
-      {
-        text: `🔗 ${message.actionLinkText}`,
-        url: message.actionLink,
-      },
-    ]);
+  if (message.importantUrls) {
+    for (const url of message.importantUrls) {
+      buttons.push([
+        {
+          text: `🔗 ${url.text}`,
+          url: url.url,
+        },
+      ]);
+    }
   }
 
   return bot.telegram.sendMessage(chatId, message.text, {

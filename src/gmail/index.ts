@@ -201,7 +201,8 @@ export const getEmailDetailsById = async (
       format: "FULL",
     });
 
-    if (res.status !== 200) return false;
+    if (res.status !== 200)
+      throw new Error(`Gmail API error: ${res.statusText}`);
     let emailText = res.data.snippet;
     if (res.data.payload.parts) {
       const htmlParts = res.data.payload.parts.filter((x) =>
@@ -222,7 +223,9 @@ export const getEmailDetailsById = async (
       message: emailText,
     };
   } catch (e) {
-    error(`getEmailDetailsById`, e);
+    let message = "Unknown Error";
+    if (error instanceof Error) message = error.message;
+    error(`getEmailDetailsById`, message);
     return false;
   }
 };

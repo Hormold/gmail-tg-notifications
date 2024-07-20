@@ -1,5 +1,5 @@
+import { BotCommand } from "@service/types";
 import { Context, Middleware } from "telegraf";
-import { BotCommand } from "@telegram/common";
 
 const help: Middleware<Context> = async function (ctx) {
   ctx.replyWithHTML(

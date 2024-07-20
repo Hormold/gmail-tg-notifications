@@ -79,15 +79,17 @@ Consider that emails with good discounts or beneficial promotions may receive a 
                 description:
                   "List of concrete action steps based on the email content, with deadlines if applicable. Ignore if useless in this case!!",
               },
-              actionLinkUrl: {
-                type: "string",
+              importantUrls: {
                 description:
-                  "If email contains special URL to follow (confirmation, etc), extract them and provide here",
-              },
-              actionLinkText: {
-                type: "string",
-                description:
-                  "Text to display for the action link, if applicable",
+                  "If email contains special URL to follow (confirmation, etc), extract them (+Text to display for the action link, if applicable) and provide here",
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    url: { type: "string" },
+                    text: { type: "string" },
+                  },
+                },
               },
             },
             required: ["category", "summary", "importance"],
@@ -167,7 +169,6 @@ ${escapeHTML(analysis.summary)}
 ${actionSteps}`,
     id: `${md5Email}_${email.id}`,
     unsubscribeLink: email.unsubscribeLink,
-    actionLink: analysis.actionLinkUrl,
-    actionLinkText: analysis.actionLinkText ?? "Action Link",
+    importantUrls: analysis.importantUrls,
   };
 };

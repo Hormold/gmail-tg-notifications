@@ -1,5 +1,5 @@
+import { BotCommand } from "@service/types";
 import { Context, Middleware } from "telegraf";
-import { BotCommand } from "@telegram/common";
 
 const getId: Middleware<Context> = async function (ctx) {
   ctx.reply(ctx.chat.id.toString());
