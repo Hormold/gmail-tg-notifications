@@ -25,7 +25,7 @@ export interface AnalysisResult {
   category: string;
   summary: string;
   importance: number;
-  actionLink?: string;
+  actionLinkUrl?: string;
   actionLinkText?: string;
   actionSteps?: string[];
 }

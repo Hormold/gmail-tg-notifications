@@ -11,7 +11,9 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const analyzeEmail = async (email: IMailObject) => {
+export const analyzeEmail = async (
+  email: IMailObject
+): Promise<AnalysisResult> => {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OpenAI API key is not set");
   }
@@ -165,7 +167,7 @@ ${escapeHTML(analysis.summary)}
 ${actionSteps}`,
     id: `${md5Email}_${email.id}`,
     unsubscribeLink: email.unsubscribeLink,
-    actionLink: analysis.actionLink,
+    actionLink: analysis.actionLinkUrl,
     actionLinkText: analysis.actionLinkText ?? "Action Link",
   };
 };
