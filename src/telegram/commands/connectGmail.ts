@@ -11,7 +11,7 @@ import {
   getNewToken,
 } from "@gmail/index";
 import { getEmailAdress, watchMails } from "@gmail/index";
-import { IAuthObject } from "types";
+import { IAuthObject } from "@service/types";
 
 const gmailConnectScene = new Scenes.BaseScene<Scenes.SceneContext>(
   "connect_gmail"

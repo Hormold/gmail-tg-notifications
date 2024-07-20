@@ -1,7 +1,7 @@
 import { bot } from "@telegram/index";
-import { MAX_MESSAGE_LENGTH } from "projectConstants";
+import { MAX_MESSAGE_LENGTH } from "@service/projectConstants";
 import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
-import { IMailObject, TelegramMessageObject } from "types";
+import { IMailObject, TelegramMessageObject } from "@service/types";
 
 export const sendErrorMessage = async (chatId: number, error: Error) => {
   await bot.telegram.sendMessage(

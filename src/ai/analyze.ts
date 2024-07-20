@@ -1,6 +1,10 @@
 import OpenAI from "openai";
 import crypto from "crypto";
-import { AnalysisResult, IMailObject, TelegramMessageObject } from "types";
+import {
+  AnalysisResult,
+  IMailObject,
+  TelegramMessageObject,
+} from "@service/types";
 import { escapeHTML } from "@service/utils";
 
 const openai = new OpenAI({

@@ -1,6 +1,6 @@
-import { GmailHistoryEntry } from "types";
+import { GmailHistoryEntry } from "@service/types";
 import { KeyValue } from "../model/kv";
-import { EMAIL_HISTORY_ID_MAP_KEY } from "projectConstants";
+import { EMAIL_HISTORY_ID_MAP_KEY } from "@service/projectConstants";
 
 export async function setValue<TVal>(key: string, value: TVal, ttl?: Date) {
   await KeyValue.findOneAndUpdate(

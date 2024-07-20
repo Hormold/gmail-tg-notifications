@@ -1,6 +1,6 @@
 import History, { IEmailHistory } from "@model/history";
 import { error, success, warning } from "@service/logging";
-import { AnalysisResult } from "types";
+import { AnalysisResult } from "@service/types";
 
 export async function AddEmailToHistoryIfNew(
   obj: Partial<IEmailHistory>

@@ -5,8 +5,8 @@ import { error } from "@service/logging";
 import { fromString as htmlToText } from "html-to-text";
 import { toFormatedString } from "@service/date";
 import { IUser } from "@model/user";
-import { IAuthObject, IMailObject } from "types";
-import { SCOPES } from "projectConstants";
+import { IAuthObject, IMailObject } from "@service/types";
+import { SCOPES } from "@service/projectConstants";
 
 const createOAuth2Client = () => {
   const { client_secret, client_id, redirect_uris } = JSON.parse(
