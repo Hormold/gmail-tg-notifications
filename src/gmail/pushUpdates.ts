@@ -112,11 +112,13 @@ export const googlePushEndpoint = async (req, res) => {
     await Promise.all(
       user.chatsId.map(async (chatId) => {
         for (const email of emails) {
-          const rateLimit = await getValue(`${emailAddress}:${historyId}`);
+          const cacheKey = `${emailAddress}:${historyId}:${chatId}`;
+          const rateLimit = await getValue(cacheKey);
           if (rateLimit) {
-            warning(`Rate limit for ${emailAddress}:${historyId}`);
+            warning(`Rate limit for ${cacheKey}`);
             continue;
           }
+          await setValue(cacheKey, true, new Date(Date.now() + 5 * 60 * 1000));
 
           // Blacklist check
           if (
