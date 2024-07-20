@@ -18,14 +18,13 @@ const main = async () => {
 
   app.get("/", async (request, reply) => {
     if (request.query["code"]) {
-      // Return with html with <h1>
       return reply
         .type("text/html")
         .send(
           `<h1>Send this code back to bot:<br /><br />${request.query["code"]}</h1>`
         );
     }
-    return `Nothing here`;
+    return reply.status(404).send("Not found");
   });
 
   return app;

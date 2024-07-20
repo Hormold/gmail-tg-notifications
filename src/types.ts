@@ -14,3 +14,26 @@ export interface IMailObject {
   rawMessage: string;
   unsubscribeLink: string | null;
 }
+
+export interface GmailHistoryEntry {
+  email: string;
+  historyId: number;
+  timestamp: number;
+}
+
+export interface AnalysisResult {
+  category: string;
+  summary: string;
+  importance: number;
+  actionLink?: string;
+  actionLinkText?: string;
+  actionSteps?: string[];
+}
+
+export interface TelegramMessageObject {
+  text: string;
+  id: string;
+  unsubscribeLink?: string;
+  actionLink?: string;
+  actionLinkText?: string;
+}

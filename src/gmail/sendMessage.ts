@@ -1,51 +1,64 @@
 import { bot } from "@telegram/index";
-import { IMailObject } from "types";
+import { MAX_MESSAGE_LENGTH } from "const";
+import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
+import { IMailObject, TelegramMessageObject } from "types";
 
-const MAX_MESSAGE_LENGTH = 3500;
+export const sendErrorMessage = async (chatId: number, error: Error) => {
+  await bot.telegram.sendMessage(
+    chatId,
+    `Error occured while processing email: ${error?.message}`
+  );
+};
 
 export const justSendMessage = async (
   chatId: number,
-  message: string,
-  mailId: string,
-  unsubscribeLink?: string
+  message: TelegramMessageObject
 ) => {
   if (!message) {
     throw new Error("Empty message");
   }
-  // with emoji all buttons!
-  const buttons = [
+
+  const buttons: InlineKeyboardButton[][] = [
     [
       {
         text: "🚫 Blacklist",
-        callback_data: `blacklist:${mailId}`,
+        callback_data: `blacklist:${message.id}`,
       },
       {
         text: "🗑 Remove",
-        callback_data: `remove:${mailId}`,
+        callback_data: `remove:${message.id}`,
       },
       {
         text: "🔍 Show more",
-        callback_data: `full:${mailId}`,
+        callback_data: `full:${message.id}`,
       },
     ],
-  ] as any;
+  ];
 
-  if (unsubscribeLink) {
+  if (message.unsubscribeLink) {
     buttons.push([
       {
         text: "🔇 Unsubscribe",
-        url: unsubscribeLink,
+        url: message.unsubscribeLink,
       },
     ]);
   }
 
-  const sent = await bot.telegram.sendMessage(chatId, message, {
+  if (message.actionLink && message.actionLinkText) {
+    buttons.push([
+      {
+        text: `🔗 ${message.actionLinkText}`,
+        url: message.actionLink,
+      },
+    ]);
+  }
+
+  return bot.telegram.sendMessage(chatId, message.text, {
     parse_mode: "HTML",
     reply_markup: {
       inline_keyboard: buttons,
     },
   });
-  return sent;
 };
 
 export const sendMessageWithAttachments = async (

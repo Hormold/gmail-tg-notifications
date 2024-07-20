@@ -1,6 +1,7 @@
 import { checkUser } from "@telegram/common";
 import { getEmailDetailsById } from "@gmail/index";
 import crypto from "crypto";
+import { clearTags, extractEmail } from "@service/utils";
 
 const getFullText = async function (ctx, id: string, emailHash: string) {
   const user = await checkUser(ctx);
@@ -22,8 +23,9 @@ const getFullText = async function (ctx, id: string, emailHash: string) {
   }
 
   if (!emailAccount) {
-    return ctx.reply("Invalid email hash");
+    return null;
   }
+
   const data = await getEmailDetailsById(emailAccount, id);
 
   if (!data) {
@@ -35,7 +37,9 @@ const getFullText = async function (ctx, id: string, emailHash: string) {
       ? `${data.message.substr(0, 3500)}\nMessage exceeded max length`
       : data.message;
 
-  return `<b>Full message text from ${data.from} - ${data.subject}:</b>\n${message}`;
+  return `<b>Full message text from ${extractEmail(data.from)} - ${
+    data.subject
+  }:</b>\n${clearTags(message)}`;
 };
 
 export default getFullText;

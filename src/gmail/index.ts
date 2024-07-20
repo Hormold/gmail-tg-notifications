@@ -6,8 +6,7 @@ import { fromString as htmlToText } from "html-to-text";
 import { toFormatedString } from "@service/date";
 import { IUser } from "@model/user";
 import { IAuthObject, IMailObject } from "types";
-
-const SCOPES = ["https://www.googleapis.com/auth/gmail.modify"];
+import { SCOPES } from "const";
 
 const createOAuth2Client = () => {
   const { client_secret, client_id, redirect_uris } = JSON.parse(

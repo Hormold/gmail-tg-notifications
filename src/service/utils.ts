@@ -8,3 +8,17 @@ export const extractEmail = (input: string): string | null => {
   }
   return null;
 };
+
+// Remove all tags from string, but leave content
+export const clearTags = (input: string): string => {
+  return input.replace(/<[^>]*>/g, "");
+};
+
+export const escapeHTML = (text: string): string => {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};

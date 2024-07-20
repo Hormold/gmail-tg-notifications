@@ -1,19 +1,13 @@
 import OpenAI from "openai";
 import crypto from "crypto";
-import { IMailObject } from "types";
-
-interface AnalysisResult {
-  category: string;
-  summary: string;
-  importance: number;
-  actionSteps: string[];
-}
+import { AnalysisResult, IMailObject, TelegramMessageObject } from "types";
+import { escapeHTML } from "@service/utils";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-async function analyzeEmail(email: IMailObject) {
+export const analyzeEmail = async (email: IMailObject) => {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OpenAI API key is not set");
   }
@@ -45,6 +39,7 @@ Provide the following information via structured output (function call):
    3-4 - medium importance (work-related, personal, etc)
    5 - high importance or requires immediate attention (urgent, important deadlines, etc)
 4. Concrete action steps (up to 3) based on the email content. Include specific deadlines or time frames if applicable.
+5. If email contains special urls or links, extract them and provide as a separate output
 
 Spam examples: newsletters, irrelevant marketing emails, or unsolicited messages.
 If this is login, password, otp code, etc - extract it and send to user.
@@ -78,6 +73,16 @@ Consider that emails with good discounts or beneficial promotions may receive a 
                 description:
                   "List of concrete action steps based on the email content, with deadlines if applicable. Ignore if useless in this case!!",
               },
+              actionLinkUrl: {
+                type: "string",
+                description:
+                  "If email contains special URL to follow (confirmation, etc), extract them and provide here",
+              },
+              actionLinkText: {
+                type: "string",
+                description:
+                  "Text to display for the action link, if applicable",
+              },
             },
             required: ["category", "summary", "importance"],
           },
@@ -97,13 +102,13 @@ Consider that emails with good discounts or beneficial promotions may receive a 
     console.error("Error analyzing email:", error);
     throw error;
   }
-}
+};
 
-function createTelegramMessage(
+export const createTelegramMessage = (
   email: IMailObject,
   emailTo: string,
   analysis: AnalysisResult
-): { text: string; id: string; unsubscribeLink: string | null } | null {
+): TelegramMessageObject | null => {
   let importanceEmoji = "";
   let importanceText = "";
 
@@ -145,7 +150,6 @@ function createTelegramMessage(
           .map((step, index) => `${index + 1}. ${step}`)
           .join("\n")
       : "";
-
   return {
     text: `${importanceEmoji} ✉️ <b>${escapeHTML(
       email.from
@@ -157,19 +161,7 @@ ${escapeHTML(analysis.summary)}
 ${actionSteps}`,
     id: `${md5Email}_${email.id}`,
     unsubscribeLink: email.unsubscribeLink,
+    actionLink: analysis.actionLink,
+    actionLinkText: analysis.actionLinkText ?? "Action Link",
   };
-}
-
-function escapeHTML(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-export async function processEmail(email: IMailObject, emailTo: string) {
-  const analysis = await analyzeEmail(email);
-  return createTelegramMessage(email, emailTo, analysis);
-}
+};

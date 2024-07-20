@@ -1,19 +1,17 @@
-import { error, info } from "@service/logging";
+import { error, info, success, warning } from "@service/logging";
 import { getEmails, authorizeUser, watchMails } from "@gmail/index";
 import { FindAll, SetChatsId, FindUserByEmailNew } from "@controller/user";
 import { bot } from "@telegram/index";
-import { getValue, setValue } from "@server/serverMap";
-import { processEmail } from "@ai/analyze";
-import { justSendMessage } from "@gmail/sendMessage";
+import { getValue, setValue } from "@db/controller/kv";
+import { analyzeEmail, createTelegramMessage } from "@ai/analyze";
+import { justSendMessage, sendErrorMessage } from "@gmail/sendMessage";
 import { extractEmail } from "@service/utils";
-
-interface GmailHistoryEntry {
-  email: string;
-  historyId: number;
-  timestamp: number;
-}
-
-const EMAIL_HISTORY_ID_MAP_KEY = "emailHistoryIdMap";
+import {
+  AddEmailToHistoryIfNew,
+  NotProcessEmail,
+  UpdateEmailAnalysis,
+} from "@controller/history";
+import { IEmailHistory } from "@model/history";
 
 const handleChatError = async (user, chatId) => {
   try {
@@ -51,7 +49,7 @@ export const googlePushEndpoint = async (req, res) => {
         return res.status(400).send("Bad request");
       }
     }
-    console.log(`Debug, incomeing body`, body);
+    success(`Debug, incomeing body: ${JSON.stringify(body)}`);
 
     const { emailAddress, historyId } = JSON.parse(
       Buffer.from(body.message.data, "base64").toString("utf-8")
@@ -60,7 +58,7 @@ export const googlePushEndpoint = async (req, res) => {
     // Limit for one historyId in 5 minutes
     const rateLimit = await getValue(`${emailAddress}:${historyId}`);
     if (rateLimit) {
-      console.log(`Rate limit for ${emailAddress}:${historyId}`);
+      warning(`Rate limit for ${emailAddress}:${historyId}`);
       return res.status(204).send();
     }
     await setValue(
@@ -71,8 +69,17 @@ export const googlePushEndpoint = async (req, res) => {
 
     const sanitizedEmail = emailAddress.toLowerCase().trim();
 
-    if (!(await addGmailUserWithHistoryId(sanitizedEmail, historyId))) {
-      info("This update was skipped as it has already been processed");
+    success(`Coming email for ${sanitizedEmail} with historyId ${historyId}`);
+
+    const emailHistoryObject = await AddEmailToHistoryIfNew({
+      email: sanitizedEmail,
+      messageId: String(historyId),
+    });
+
+    if (!emailHistoryObject) {
+      warning(
+        `Email history object already exists for ${sanitizedEmail}:${historyId}`
+      );
       return res.status(204).send();
     }
 
@@ -82,11 +89,17 @@ export const googlePushEndpoint = async (req, res) => {
     const gmailAccount = user.gmailAccounts.find(
       (acc) => acc.email === sanitizedEmail
     );
-    console.log(`Coming email for ${sanitizedEmail}`);
-    if (!gmailAccount) return res.status(204).send("Gmail account not found");
+
+    if (!gmailAccount) {
+      warning(`Gmail account not found for ${sanitizedEmail}`);
+      return res.status(204).send("Gmail account not found");
+    }
 
     const emails = await getEmails(gmailAccount, historyId, user);
-    if (!emails) throw new Error("Failed to get emails");
+    if (!emails) {
+      warning(`Failed to get emails for ${sanitizedEmail}`);
+      throw new Error("Failed to get emails");
+    }
 
     await Promise.all(
       user.chatsId.map(async (chatId) => {
@@ -98,8 +111,9 @@ export const googlePushEndpoint = async (req, res) => {
               .map((email) => email.toLowerCase())
               .includes(email.from.toLowerCase())
           ) {
-            console.log(
-              `Email from blacklisted sender ${email.from}, skipping`
+            await NotProcessEmail(
+              emailHistoryObject as IEmailHistory,
+              "Blacklisted sender"
             );
             continue;
           }
@@ -107,34 +121,45 @@ export const googlePushEndpoint = async (req, res) => {
           if (
             extractEmail(email.from.trim().toLowerCase()) === sanitizedEmail
           ) {
-            console.log(`Email from self, skipping`);
+            await NotProcessEmail(
+              emailHistoryObject as IEmailHistory,
+              "Email from self"
+            );
             continue;
           }
 
           try {
-            //await sendMessageWithAttachments(chatId, email); // Legacy
-            const aiProcessedEmail = await processEmail(email, sanitizedEmail);
+            const analysis = await analyzeEmail(email);
+            const aiProcessedEmail = createTelegramMessage(
+              email,
+              sanitizedEmail,
+              analysis
+            );
             if (aiProcessedEmail) {
-              await justSendMessage(
-                chatId,
-                aiProcessedEmail.text,
-                aiProcessedEmail.id,
-                aiProcessedEmail.unsubscribeLink
+              await justSendMessage(chatId, aiProcessedEmail);
+              await UpdateEmailAnalysis(
+                emailHistoryObject as IEmailHistory,
+                analysis
               );
             } else {
-              console.log(
-                `No AI processed email for ${email.id}, looks like this is a spam`
+              await NotProcessEmail(
+                emailHistoryObject as IEmailHistory,
+                "GPT says it's spam"
               );
             }
-          } catch (err) {
-            console.log(`Error in sending message`, err, req.body);
+          } catch (err: any) {
+            await sendErrorMessage(chatId, err);
+            warning(`Error in sending message: ${err.message}`);
+            await NotProcessEmail(
+              emailHistoryObject as IEmailHistory,
+              "Error in processing email: " + err?.message
+            );
             await handleChatError(user, chatId);
           }
         }
       })
     );
 
-    await cleanGmailHistoryIdMap();
     res.status(204).send();
   } catch (e) {
     console.error(e);
@@ -192,35 +217,5 @@ export const resubRoute = async (_req, res) => {
   } catch (e) {
     error(e);
     res.status(500).send("Internal Server Error");
-  }
-};
-
-const addGmailUserWithHistoryId = async (
-  email: string,
-  historyId: number
-): Promise<boolean> => {
-  const entries: GmailHistoryEntry[] =
-    (await getValue(EMAIL_HISTORY_ID_MAP_KEY)) || [];
-  const current = `${email}${historyId}`;
-
-  if (entries.some((entry) => `${entry.email}${entry.historyId}` === current)) {
-    return false;
-  }
-
-  entries.push({ email, historyId, timestamp: Date.now() });
-  const updatedEntries = entries
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .slice(0, 100);
-  await setValue(EMAIL_HISTORY_ID_MAP_KEY, updatedEntries);
-  return true;
-};
-
-const cleanGmailHistoryIdMap = async (): Promise<void> => {
-  const entries = await getValue<GmailHistoryEntry[]>(EMAIL_HISTORY_ID_MAP_KEY);
-  if (entries && entries.length > 100) {
-    const updatedEntries = entries
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 100);
-    await setValue(EMAIL_HISTORY_ID_MAP_KEY, updatedEntries);
   }
 };
