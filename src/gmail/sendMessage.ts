@@ -1,5 +1,5 @@
 import { bot } from "@telegram/index";
-import { MAX_MESSAGE_LENGTH } from "const";
+import { MAX_MESSAGE_LENGTH } from "projectConstants";
 import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
 import { IMailObject, TelegramMessageObject } from "types";
 
