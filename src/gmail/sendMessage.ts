@@ -2,6 +2,7 @@ import { bot } from "@telegram/index";
 import { MAX_MESSAGE_LENGTH } from "@service/projectConstants";
 import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
 import { IMailObject, TelegramMessageObject } from "@service/types";
+import { isValidUrl } from "@service/utils";
 
 export const sendErrorMessage = async (chatId: number, error: Error) => {
   await bot.telegram.sendMessage(
@@ -46,9 +47,14 @@ export const justSendMessage = async (
 
   if (message.importantUrls) {
     for (const url of message.importantUrls) {
+      // Check url validity
+      if (!url.url || !isValidUrl(url.url)) {
+        continue;
+      }
+
       buttons.push([
         {
-          text: `🔗 ${url.text}`,
+          text: `🔗 ${url.text ?? "Open link"}`,
           url: url.url,
         },
       ]);

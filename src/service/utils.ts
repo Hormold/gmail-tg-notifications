@@ -1,5 +1,4 @@
 const emailRegex = /(?:<?\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b>?)/i;
-
 export const extractEmail = (input: string): string | null => {
   const match = input.match(emailRegex);
   if (match) {
@@ -21,4 +20,13 @@ export const escapeHTML = (text: string): string => {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+};
+
+export const isValidUrl = (url: string): boolean => {
+  try {
+    const newUrl = new URL(url);
+    return newUrl.protocol === "http:" || newUrl.protocol === "https:";
+  } catch (err) {
+    return false;
+  }
 };
