@@ -33,6 +33,7 @@ export const analyzeEmail = async (
 
 Subject: ${email.title}
 From: ${email.from}
+Date: ${email.date ?? new Date().toISOString()}
 Body:
 ${email.rawMessage}
 

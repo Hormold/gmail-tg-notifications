@@ -7,6 +7,7 @@ import { toFormatedString } from "@service/date";
 import { IUser } from "@model/user";
 import { IAuthObject, IMailObject } from "@service/types";
 import { SCOPES } from "@service/projectConstants";
+import { extractUnsubscribeUrl } from "@service/utils";
 
 const createOAuth2Client = () => {
   const { client_secret, client_id, redirect_uris } = JSON.parse(
@@ -270,15 +271,6 @@ export const getEmailById = async (
   }
 };
 
-function extractUnsubscribeUrl(header: string): string | null {
-  const urlRegex = /<(https?:\/\/[^>]+)>/;
-  const matches = header.match(urlRegex);
-  if (matches && matches.length > 1) {
-    return matches[1];
-  }
-  return null;
-}
-
 export const getEmails = async (
   email: IUser["gmailAccounts"][0],
   historyId: number,
@@ -316,22 +308,6 @@ export const getEmails = async (
           message = htmlToText(base64ToString(mail.payload.body.data || ""));
         }
 
-        if (mail.payload.headers) {
-          const getHeader = (name: string) =>
-            mail.payload.headers.find((x) => x.name === name)?.value;
-          const subject = getHeader("Subject");
-          const date = getHeader("Date");
-          const from = getHeader("From");
-
-          if (subject) message = `Subject: ${subject}\n\n\n\n${message}`;
-          if (date)
-            message = `Date: ${toFormatedString(new Date(date))}\n${message}`;
-          if (from) {
-            const fromValue = from.toLowerCase();
-            message = `From: ${fromValue}\n${message}`;
-          }
-        }
-
         if (mail.payload && mail.payload.parts) {
           for (const part of mail.payload.parts) {
             if (part.filename) {
@@ -351,11 +327,11 @@ export const getEmails = async (
             }
           }
         }
-
-        const from = mail.payload.headers.find((x) => x.name === "From");
-        const title = mail.payload.headers.find((x) => x.name === "Subject");
-        const rawMessage = mail.snippet || "";
-        // Check for List-Unsubscribe
+        const getHeader = (name: string) =>
+          mail.payload.headers.find((x) => x.name === name)?.value;
+        const from = getHeader("From");
+        const title = getHeader("Subject");
+        const date = getHeader("Date");
         const unsubscribeLink = mail.payload.headers.find(
           (header) => header.name === "List-Unsubscribe"
         )?.value;
@@ -364,9 +340,10 @@ export const getEmails = async (
           id: mail.id,
           message,
           attachments,
-          from: from?.value,
-          title: title?.value,
-          rawMessage,
+          date: toFormatedString(new Date(date)),
+          from,
+          title,
+          rawMessage: message ?? mail.snippet ?? "",
           unsubscribeLink: unsubscribeLink
             ? extractUnsubscribeUrl(unsubscribeLink)
             : null,

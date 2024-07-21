@@ -30,3 +30,12 @@ export const isValidUrl = (url: string): boolean => {
     return false;
   }
 };
+
+export const extractUnsubscribeUrl = (header: string): string | null => {
+  const urlRegex = /<(https?:\/\/[^>]+)>/;
+  const matches = header.match(urlRegex);
+  if (matches && matches.length > 1) {
+    return matches[1];
+  }
+  return null;
+};

@@ -10,6 +10,7 @@ export interface IMailObject {
   message: string;
   attachments: { name: string; data: Buffer }[];
   from: string | undefined;
+  date: string;
   title: string | undefined;
   rawMessage: string;
   unsubscribeLink: string | null;
