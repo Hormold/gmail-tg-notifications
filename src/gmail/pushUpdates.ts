@@ -112,7 +112,7 @@ export const googlePushEndpoint = async (req, res) => {
     await Promise.all(
       user.chatsId.map(async (chatId) => {
         for (const email of emails) {
-          const cacheKey = `${emailAddress}:${historyId}:${chatId}`;
+          const cacheKey = `${emailAddress}:${email.id}:${chatId}`;
           const rateLimit = await getValue(cacheKey);
           if (rateLimit) {
             warning(`Rate limit for ${cacheKey}`);
