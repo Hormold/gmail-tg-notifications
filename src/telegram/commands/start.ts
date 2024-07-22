@@ -13,7 +13,7 @@ const start: Middleware<Context> = async function (ctx) {
       });
       if (typeof newUser !== "undefined") {
         ctx.reply(
-          "Successfully registered. Now you can adjust it. /help to see more"
+          "Hey! Welcome to Gmail Bot, you are registered now. You can add your gmail account by sending /connect_gmail"
         );
       } else {
         ctx.reply("Error ocurred while registering");

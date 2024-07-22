@@ -25,7 +25,7 @@ gmailConnectScene.enter(async (ctx) => {
 
   if (!user.gmailAccounts.length) {
     await ctx.reply(
-      "To add gmail account you need to authorize at gmail, click /new to get token"
+      "Ok, now we need to autorize access from bot to GMail! Ready? Click /new to get link!"
     );
   } else {
     for (let i = 0; i < user.gmailAccounts.length; i++) {
@@ -43,8 +43,8 @@ gmailConnectScene.enter(async (ctx) => {
       } else {
         await ctx.reply("Error ocurred, couldn't subscribe");
       }
+      ctx.reply("To add new account click /new or /cancel to exit");
     }
-    ctx.reply("To add new account click /new or /cancel to exit");
   }
 });
 
@@ -52,12 +52,13 @@ gmailConnectScene.command("new", async (ctx) => {
   const obj = await authorizeUser("");
   const url = generateUrlToGetToken(obj.oauth);
   await ctx.reply(
-    "You need to authorize at gmail. Open link below to get token. To cancel tap /cancel"
+    "Cool! Now you need to authorize at GMail. Open link below to get token. After redirect, copy full token and send me back! To cancel tap: /cancel"
   );
   await ctx.reply(url);
-  await ctx.reply("Enter token:");
+  await ctx.reply("Enter token from GMail:");
   ctx.scene.session.state = obj;
 });
+
 gmailConnectScene.command("cancel", Scenes.Stage.leave<Scenes.SceneContext>());
 gmailConnectScene.leave((ctx) => ctx.reply("Gmail config finished, exiting"));
 

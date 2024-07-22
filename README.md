@@ -1,6 +1,39 @@
 # Gmail Notification Telegram Bot
 
-This project is a Telegram bot that provides notifications for new Gmail messages across multiple accounts per user.
+This project implements a sophisticated Telegram bot that provides real-time notifications for new Gmail messages across multiple accounts per user. It's designed to help users efficiently manage their email inboxes without constantly checking multiple Gmail accounts.
+
+## 🚀 Features
+
+- **🔗 Multi-account Support**: Monitor multiple Gmail accounts for each user.
+- **⚡ Real-time Notifications**: Receive instant notifications on Telegram when new emails arrive.
+- **🧠 AI-powered Email Analysis**: Utilizes OpenAI's GPT-4 to categorize emails, summarize content, and suggest action steps.
+- **🎚️ Importance Rating**: Automatically rates email importance on a scale of 0-5.
+- **📝 Message Preview**: Get a concise preview of the email content in the Telegram notification.
+- **🎯 Quick Actions**: Perform basic actions like blacklisting senders or removing notifications directly from Telegram.
+- **🔒 Privacy-focused**: The bot doesn't store email contents, only metadata for notifications.
+- **🔗 Smart Link Handling**: Extracts and provides quick access to important URLs in emails.
+- **🚫 Spam Protection**: Automatically filters out spam and low-importance emails.
+- **↩️ Unsubscribe Option**: Easily unsubscribe from newsletters directly from the notification.
+
+## 🛠️ Technical Stack
+
+- **Backend**: Node.js with TypeScript
+- **AI Integration**: OpenAI API (GPT-4)
+- **Email Integration**: Gmail API
+- **Bot Framework**: Telegraf (Telegram Bot API)
+- **Database**: MongoDB (implied from the code structure)
+- **Authentication**: OAuth2 for Gmail accounts
+
+## 🧠 How It Works
+
+1. **User Registration**: Users register their Gmail accounts with the bot through a secure OAuth2 process.
+2. **Email Monitoring**: The bot uses Gmail's API to watch for new emails in registered accounts.
+3. **Push Notifications**: When a new email arrives, Google sends a push notification to the bot's endpoint.
+4. **Email Retrieval**: The bot fetches the new email details using the Gmail API.
+5. **AI Analysis**: The email is analyzed using OpenAI's GPT-4 model to categorize, summarize, and rate its importance.
+6. **Notification Creation**: Based on the AI analysis, a Telegram message is crafted with relevant information and action buttons.
+7. **Message Delivery**: The notification is sent to the user's designated Telegram chat(s).
+8. **User Interaction**: Users can interact with the notification to perform quick actions or view more details.
 
 ## Setup Instructions
 
