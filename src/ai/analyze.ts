@@ -37,6 +37,7 @@ Date: ${email.date ?? new Date().toISOString()}
 Body:
 ${email.rawMessage}
 
+------
 Provide the following information via structured output (function call):
 1. Category of the email: Personal, Work, Finance, Marketing, Bills, Other (specify)
 2. Brief summary of the content (no more than 20 words)
@@ -49,7 +50,7 @@ Provide the following information via structured output (function call):
 5. If email contains special urls or links, extract them and provide as a separate output
 
 Spam examples: newsletters, irrelevant marketing emails, or unsolicited messages.
-If this is login, password, otp code, etc - extract it and send to user.
+Mandatory: if email contains some VERIFICATION code (or any other important code), extract it and add it to summary! This is very important for the user to not miss it.
 
 Consider that emails with good discounts or beneficial promotions may receive a higher rating. But you should realy mark spam as spam`,
         },
