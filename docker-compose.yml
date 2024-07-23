@@ -1,7 +1,7 @@
 version: "3"
 services:
   app:
-    build: .
+    image: hormold/gmail-bot:latest
     ports:
       - "6000:3000"
     env_file: .env
