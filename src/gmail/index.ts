@@ -292,20 +292,25 @@ export const getEmails = async (
 
     const result = await Promise.all(
       messagesDocuments.map(async (mail) => {
-        let message = "";
+        let message = mail.snippet;
         const attachments = [];
-
-        if (mail.payload.parts) {
-          const htmlParts = mail.payload.parts.filter((x) =>
-            x.mimeType.includes("text/html")
-          );
-          message = htmlParts.reduce(
-            (prev, cur) => prev + base64ToString(cur.body.data),
-            ""
-          );
-          message = htmlToText(message);
-        } else if (mail.payload.body) {
-          message = htmlToText(base64ToString(mail.payload.body.data || ""));
+        try {
+          if (mail.payload.parts) {
+            const htmlParts = mail.payload.parts.filter((x) =>
+              x.mimeType.includes("text/html")
+            );
+            message = htmlParts.reduce(
+              (prev, cur) => prev + base64ToString(cur?.body?.data || ""),
+              ""
+            );
+            message = htmlToText(message);
+          } else if (mail.payload.body) {
+            message = htmlToText(
+              base64ToString(mail?.payload?.body?.data || "")
+            );
+          }
+        } catch (e) {
+          error(`Error on email parsing`, e);
         }
 
         if (mail.payload && mail.payload.parts) {
@@ -332,9 +337,7 @@ export const getEmails = async (
         const from = getHeader("From");
         const title = getHeader("Subject");
         const date = getHeader("Date");
-        const unsubscribeLink = mail.payload.headers.find(
-          (header) => header.name === "List-Unsubscribe"
-        )?.value;
+        const unsubscribeLink = getHeader("List-Unsubscribe");
 
         return {
           id: mail.id,
