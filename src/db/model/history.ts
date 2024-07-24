@@ -12,7 +12,7 @@ export interface IEmailHistory extends Document {
 
   from?: string;
   title?: string;
-  summary: string;
+  summary?: string;
   unsubscribeLink?: string;
   importantUrls?: { url: string; text?: string }[];
   deadline?: Date;
@@ -32,14 +32,14 @@ const HistorySchema: Schema = new Schema({
   category: { type: String, required: false },
   from: { type: String, required: false },
   title: { type: String, required: false },
-  summary: { type: String, required: true },
+  summary: { type: String, required: false },
 
   importantUrls: { type: [{ url: String, text: String }], required: false },
   unsubscribeLink: { type: String, required: false },
   deadline: { type: Date, required: false },
 
   importance: { type: Number, required: false },
-  actionSteps: { type: [String], required: true },
+  actionSteps: { type: [String], required: false },
   processingDetails: { type: String, required: false },
 
   telegramMessageText: { type: String, required: false },
