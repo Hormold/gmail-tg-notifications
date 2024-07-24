@@ -1,6 +1,6 @@
 import History, { IEmailHistory } from "@model/history";
 import { error, success, warning } from "@service/logging";
-import { AnalysisResult } from "@service/types";
+import { AnalysisResult, TelegramMessageOutput } from "@service/types";
 
 export async function AddEmailToHistoryIfNew(
   obj: Partial<IEmailHistory>
@@ -49,7 +49,8 @@ export async function NotProcessEmail(
 
 export async function UpdateEmailAnalysis(
   obj: Partial<IEmailHistory>,
-  emailAnalyze: AnalysisResult
+  emailAnalyze: AnalysisResult,
+  telegramMessage: TelegramMessageOutput
 ) {
   success(`Updating email ${obj.email}:${obj.messageId} with analysis`);
 
@@ -61,6 +62,17 @@ export async function UpdateEmailAnalysis(
     {
       category: emailAnalyze.category,
       importance: emailAnalyze.importance,
+      from: obj.from,
+      title: obj.title,
+      summary: emailAnalyze.summary,
+      importantUrls: emailAnalyze.importantUrls,
+      deadline: emailAnalyze.deadline,
+      unsubscribeLink: obj.unsubscribeLink,
+
+      telegramMessageText: telegramMessage.messageText,
+      telegramMessageId: telegramMessage.messageId,
+      telegramMessageButtons: telegramMessage.messageButtons,
+
       processedAt: new Date(),
       processingDetails: "Email has been processed",
     }

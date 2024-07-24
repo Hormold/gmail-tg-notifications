@@ -3,8 +3,8 @@ import { getEmails, authorizeUser, watchMails } from "@gmail/index";
 import { FindAll, SetChatsId, FindUserByEmailNew } from "@controller/user";
 import { bot } from "@telegram/index";
 import { getValue, setValue } from "@db/controller/kv";
-import { analyzeEmail, createTelegramMessage } from "@ai/analyze";
-import { justSendMessage, sendErrorMessage } from "@gmail/sendMessage";
+import { analyzeEmail } from "@ai/analyze";
+import { createTelegramMessage, sendErrorMessage } from "@telegram/sendMessage";
 import { extractEmail } from "@service/utils";
 import {
   AddEmailToHistoryIfNew,
@@ -146,21 +146,32 @@ export const googlePushEndpoint = async (req, res) => {
 
           try {
             const analysis = await analyzeEmail(email);
-            const aiProcessedEmail = createTelegramMessage(
+
+            if (+analysis.importance === 0) {
+              await NotProcessEmail(
+                emailHistoryObject as IEmailHistory,
+                "Email is not important"
+              );
+              continue;
+            }
+
+            const telegramSendResult = await createTelegramMessage(
+              chatId,
               email,
               sanitizedEmail,
               analysis
             );
-            if (aiProcessedEmail) {
-              await justSendMessage(chatId, aiProcessedEmail);
+
+            if (telegramSendResult.success) {
               await UpdateEmailAnalysis(
                 emailHistoryObject as IEmailHistory,
-                analysis
+                analysis,
+                telegramSendResult
               );
             } else {
               await NotProcessEmail(
                 emailHistoryObject as IEmailHistory,
-                "GPT says it's spam"
+                telegramSendResult.error ?? "Unknown error"
               );
             }
           } catch (err: any) {

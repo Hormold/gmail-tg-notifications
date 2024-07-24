@@ -1,8 +1,14 @@
 import { bot } from "@telegram/index";
 import { MAX_MESSAGE_LENGTH } from "@service/projectConstants";
+import crypto from "crypto";
 import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
-import { IMailObject, TelegramMessageObject } from "@service/types";
+import {
+  AnalysisResult,
+  IMailObject,
+  TelegramMessageOutput,
+} from "@service/types";
 import { isValidUrl } from "@service/utils";
+import { emailTemplate, getImportanceInfo } from "./template";
 
 export const sendErrorMessage = async (chatId: number, error: Error) => {
   await bot.telegram.sendMessage(
@@ -11,13 +17,39 @@ export const sendErrorMessage = async (chatId: number, error: Error) => {
   );
 };
 
-export const justSendMessage = async (
+export const createTelegramMessage = async (
   chatId: number,
-  message: TelegramMessageObject
-) => {
-  if (!message) {
-    throw new Error("Empty message");
-  }
+  email: IMailObject,
+  emailTo: string,
+  analysis: AnalysisResult
+): Promise<TelegramMessageOutput> => {
+  const { emoji: importanceEmoji, text: importanceText } = getImportanceInfo(
+    analysis.importance
+  );
+
+  const md5Email = crypto
+    .createHash("md5")
+    .update(emailTo)
+    .digest("hex")
+    .slice(0, 5);
+
+  const message = {
+    text: emailTemplate({
+      importanceEmoji,
+      from: email.from,
+      emailTo,
+      importance: analysis.importance,
+      title: email.title,
+      importanceText,
+      category: analysis.category,
+      summary: analysis.summary,
+      actionSteps: analysis.actionSteps || [],
+      deadline: analysis.deadline || null,
+    }),
+    id: `${md5Email}_${email.id}`,
+    unsubscribeLink: email.unsubscribeLink,
+    importantUrls: analysis.importantUrls,
+  };
 
   const buttons: InlineKeyboardButton[][] = [
     [
@@ -36,7 +68,7 @@ export const justSendMessage = async (
     ],
   ];
 
-  if (message.unsubscribeLink) {
+  if (message.unsubscribeLink && isValidUrl(message.unsubscribeLink)) {
     buttons.push([
       {
         text: "🔇 Unsubscribe",
@@ -47,11 +79,9 @@ export const justSendMessage = async (
 
   if (message.importantUrls) {
     for (const url of message.importantUrls) {
-      // Check url validity
       if (!url.url || !isValidUrl(url.url)) {
         continue;
       }
-
       buttons.push([
         {
           text: `🔗 ${url.text ?? "Open link"}`,
@@ -61,12 +91,25 @@ export const justSendMessage = async (
     }
   }
 
-  return bot.telegram.sendMessage(chatId, message.text, {
-    parse_mode: "HTML",
-    reply_markup: {
-      inline_keyboard: buttons,
-    },
-  });
+  try {
+    const tgMessage = await bot.telegram.sendMessage(chatId, message.text, {
+      parse_mode: "HTML",
+      reply_markup: {
+        inline_keyboard: buttons,
+      },
+    });
+    return {
+      success: true,
+      messageText: message.text,
+      messageButtons: buttons,
+      messageId: tgMessage.message_id,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Error sending message: ${(error as Error).message}`,
+    };
+  }
 };
 
 export const sendMessageWithAttachments = async (

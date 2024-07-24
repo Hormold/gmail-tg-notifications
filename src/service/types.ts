@@ -1,4 +1,5 @@
 import { OAuth2Client } from "google-auth-library";
+import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
 
 export interface IAuthObject {
   oauth: OAuth2Client;
@@ -28,6 +29,28 @@ export interface AnalysisResult {
   importance: number;
   importantUrls?: { url: string; text: string }[];
   actionSteps?: string[];
+  deadline?: Date;
+}
+
+export interface TelegramMessageOutput {
+  success: boolean;
+  error?: string;
+  messageText?: string;
+  messageId?: number;
+  messageButtons?: InlineKeyboardButton[][];
+}
+
+export interface TemplateData {
+  importanceEmoji: string;
+  from: string;
+  emailTo: string;
+  importance: number;
+  title: string;
+  importanceText?: string;
+  category: string;
+  summary: string;
+  actionSteps?: string[];
+  deadline?: Date;
 }
 
 export interface TelegramMessageObject {

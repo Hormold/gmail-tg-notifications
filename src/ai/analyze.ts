@@ -1,11 +1,6 @@
 import OpenAI from "openai";
-import crypto from "crypto";
-import {
-  AnalysisResult,
-  IMailObject,
-  TelegramMessageObject,
-} from "@service/types";
-import { escapeHTML } from "@service/utils";
+import { error, warning } from "@service/logging";
+import { AnalysisResult, IMailObject } from "@service/types";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -55,122 +50,73 @@ Mandatory: if email contains some VERIFICATION code (or any other important code
 Consider that emails with good discounts or beneficial promotions may receive a higher rating. But you should realy mark spam as spam`,
         },
       ],
-      functions: [
+      tool_choice: "required",
+      tools: [
         {
-          name: "analyze_email",
-          description:
-            "Analyzes an email and returns structured information about it",
-          parameters: {
-            type: "object",
-            properties: {
-              category: {
-                type: "string",
-                description: "The category of the email",
-              },
-              summary: {
-                type: "string",
-                description: "A brief summary of the email content",
-              },
-              importance: {
-                type: "number",
-                description: "The importance rating of the email from 0 to 5",
-              },
-              actionSteps: {
-                type: "array",
-                items: { type: "string" },
-                description:
-                  "List of concrete action steps based on the email content, with deadlines if applicable. Ignore if useless in this case!!",
-              },
-              importantUrls: {
-                description:
-                  "If email contains special URL to follow (confirmation, etc), extract them (+Text to display for the action link, if applicable) and provide here",
-                type: "array",
-                items: {
-                  type: "object",
-                  properties: {
-                    url: { type: "string" },
-                    text: { type: "string" },
+          type: "function",
+          function: {
+            name: "analyze_email",
+            description:
+              "Analyzes an email and returns structured information about it",
+            parameters: {
+              type: "object",
+              properties: {
+                category: {
+                  type: "string",
+                  description: "The category of the email",
+                },
+                summary: {
+                  type: "string",
+                  description: "A brief summary of the email content",
+                },
+                importance: {
+                  type: "number",
+                  description: "The importance rating of the email from 0 to 5",
+                },
+                deadline: {
+                  type: "date-time",
+                  description:
+                    "The deadline OR time of the event from email, if applicable",
+                },
+                actionSteps: {
+                  type: "array",
+                  items: { type: "string" },
+                  maxContains: 5,
+                  description:
+                    "List of concrete action steps based on the email content, with deadlines if applicable. Ignore if useless in this case!!",
+                },
+                importantUrls: {
+                  description:
+                    "If email contains special URL to follow (confirmation, etc), extract them (+Text to display for the action link, if applicable) and provide here. Extract full links, not just domains!",
+                  type: "array",
+                  maxContains: 5,
+                  items: {
+                    type: "object",
+                    properties: {
+                      url: { type: "string" },
+                      text: { type: "string" },
+                    },
+                    required: ["url", "text"],
                   },
                 },
               },
+              required: ["category", "summary", "importance"],
             },
-            required: ["category", "summary", "importance"],
           },
         },
       ],
-      function_call: { name: "analyze_email" },
     });
 
-    const functionCall = response.choices[0].message.function_call;
-    if (functionCall && functionCall.name === "analyze_email") {
-      const result = JSON.parse(functionCall.arguments || "{}");
+    const functionCall = response.choices[0].message.tool_calls[0];
+    if (functionCall && functionCall.function.name === "analyze_email") {
+      const result = JSON.parse(functionCall.function.arguments || "{}");
       return result as AnalysisResult;
     } else {
+      warning("Unexpected response format from GPT API", response);
       throw new Error("Unexpected response format from GPT API");
     }
-  } catch (error) {
-    console.error("Error analyzing email:", error);
+  } catch (err) {
+    error("Error occured while analyzing email", error);
     throw error;
   }
-};
-
-export const createTelegramMessage = (
-  email: IMailObject,
-  emailTo: string,
-  analysis: AnalysisResult
-): TelegramMessageObject | null => {
-  let importanceEmoji = "";
-  let importanceText = "";
-
-  switch (analysis.importance) {
-    case 0:
-      return null;
-    case 1:
-      importanceEmoji = "⚪️";
-      importanceText = "Low importance";
-      break;
-    case 2:
-      importanceEmoji = "🔵";
-      importanceText = "Moderate importance";
-      break;
-    case 3:
-      importanceEmoji = "🟢";
-      importanceText = "Important";
-      break;
-    case 4:
-      importanceEmoji = "🟠";
-      importanceText = "Very important";
-      break;
-    case 5:
-      importanceEmoji = "🔴";
-      importanceText = "Urgent";
-      break;
-  }
-
-  let md5Email = crypto
-    .createHash("md5")
-    .update(emailTo)
-    .digest("hex")
-    .slice(0, 5);
-
-  let actionSteps =
-    analysis.actionSteps && analysis.actionSteps.length
-      ? `\n<b>Recommended Actions:</b>\n` +
-        analysis.actionSteps
-          .map((step, index) => `${index + 1}. ${step}`)
-          .join("\n")
-      : "";
-  return {
-    text: `${importanceEmoji} ✉️ <b>${escapeHTML(
-      email.from
-    )}</b> for <b>${emailTo}</b> (<i>${analysis.importance}/5</i>)
-${escapeHTML(email.title)} (${importanceText})
-<b>Category:</b> ${escapeHTML(analysis.category)}
-
-${escapeHTML(analysis.summary)}
-${actionSteps}`,
-    id: `${md5Email}_${email.id}`,
-    unsubscribeLink: email.unsubscribeLink,
-    importantUrls: analysis.importantUrls,
-  };
 };

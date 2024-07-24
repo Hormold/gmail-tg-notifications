@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 const emailRegex = /(?:<?\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b>?)/i;
 export const extractEmail = (input: string): string | null => {
   const match = input.match(emailRegex);
@@ -38,4 +40,9 @@ export const extractUnsubscribeUrl = (header: string): string | null => {
     return matches[1];
   }
   return null;
+};
+
+export const parseDate = (date: string): string | null => {
+  const parsed = dayjs(date);
+  return parsed.isValid() ? parsed.format("HH:mm, DD/MM/YYYY") : null;
 };
