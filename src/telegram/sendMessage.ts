@@ -1,6 +1,7 @@
 import { bot } from "@telegram/index";
 import { MAX_MESSAGE_LENGTH } from "@service/projectConstants";
 import crypto from "crypto";
+import dayjs from "dayjs";
 import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
 import {
   AnalysisResult,
@@ -27,6 +28,15 @@ export const createTelegramMessage = async (
     analysis.importance
   );
 
+  // Validate deadline if present
+  let deadline = null;
+  if (analysis.deadline) {
+    const deadlineParsed = dayjs(analysis.deadline);
+    if (deadline.isValid()) {
+      deadline = deadlineParsed.toDate();
+    }
+  }
+
   const md5Email = crypto
     .createHash("md5")
     .update(emailTo)
@@ -44,7 +54,7 @@ export const createTelegramMessage = async (
       category: analysis.category,
       summary: analysis.summary,
       actionSteps: analysis.actionSteps || [],
-      deadline: analysis.deadline || null,
+      deadline,
     }),
     id: `${md5Email}_${email.id}`,
     unsubscribeLink: email.unsubscribeLink,

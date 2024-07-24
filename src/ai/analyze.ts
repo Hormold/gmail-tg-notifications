@@ -19,8 +19,7 @@ export const analyzeEmail = async (
       messages: [
         {
           role: "system",
-          content:
-            "You are an AI assistant that analyzes emails and provides structured output with concrete action steps. Your final goal - help the user to manage their inbox more effectively. You can categorize emails, summarize their content, rate their importance, and suggest action steps based on the email content.",
+          content: `You are an AI assistant that analyzes emails and provides structured output with concrete action steps. Your final goal - help the user to manage their inbox more effectively. You can categorize emails, summarize their content, rate their importance, and suggest action steps based on the email content. Today: ${new Date().toISOString()}`,
         },
         {
           role: "user",
@@ -74,7 +73,8 @@ Consider that emails with good discounts or beneficial promotions may receive a 
                   description: "The importance rating of the email from 0 to 5",
                 },
                 deadline: {
-                  type: "date-time",
+                  type: "string",
+                  format: "date-time",
                   description:
                     "The deadline OR time of the event from email, if applicable",
                 },
@@ -116,7 +116,7 @@ Consider that emails with good discounts or beneficial promotions may receive a 
       throw new Error("Unexpected response format from GPT API");
     }
   } catch (err) {
-    error("Error occured while analyzing email", error);
-    throw error;
+    error("Error occured while analyzing email", err);
+    throw err;
   }
 };

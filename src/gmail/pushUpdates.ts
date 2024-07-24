@@ -176,7 +176,7 @@ export const googlePushEndpoint = async (req, res) => {
             }
           } catch (err: any) {
             await sendErrorMessage(chatId, err);
-            warning(`Error in sending message: ${err.message}`);
+            warning(`Error in sending message: ${err.message}`, err);
             await NotProcessEmail(
               emailHistoryObject as IEmailHistory,
               "Error in processing email: " + err?.message

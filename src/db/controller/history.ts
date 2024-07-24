@@ -1,6 +1,7 @@
 import History, { IEmailHistory } from "@model/history";
 import { error, success, warning } from "@service/logging";
 import { AnalysisResult, TelegramMessageOutput } from "@service/types";
+import dayjs from "dayjs";
 
 export async function AddEmailToHistoryIfNew(
   obj: Partial<IEmailHistory>
@@ -66,7 +67,7 @@ export async function UpdateEmailAnalysis(
       title: obj.title,
       summary: emailAnalyze.summary,
       importantUrls: emailAnalyze.importantUrls,
-      deadline: emailAnalyze.deadline,
+      deadline: dayjs(emailAnalyze.deadline).toDate(),
       unsubscribeLink: obj.unsubscribeLink,
 
       telegramMessageText: telegramMessage.messageText,

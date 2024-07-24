@@ -29,7 +29,7 @@ export interface AnalysisResult {
   importance: number;
   importantUrls?: { url: string; text: string }[];
   actionSteps?: string[];
-  deadline?: Date;
+  deadline?: string;
 }
 
 export interface TelegramMessageOutput {
