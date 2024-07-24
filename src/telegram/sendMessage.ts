@@ -32,7 +32,7 @@ export const createTelegramMessage = async (
   let deadline = null;
   if (analysis.deadline) {
     const deadlineParsed = dayjs(analysis.deadline);
-    if (deadline.isValid()) {
+    if (deadlineParsed.isValid()) {
       deadline = deadlineParsed.toDate();
     }
   }
