@@ -25,11 +25,40 @@ export async function AddEmailToHistoryIfNew(
 
 export async function NotProcessEmail(
   obj: Partial<IEmailHistory>,
-  processingDetails: string
+  processingDetails: string,
+  analysis?: AnalysisResult
 ): Promise<IEmailHistory | null> {
   warning(
     `Not processing email ${obj.email}:${obj.messageId} because ${processingDetails}`
   );
+
+  // Save, but not notify
+  if (analysis) {
+    return History.findOneAndUpdate(
+      {
+        email: obj.email,
+        messageId: obj.messageId,
+      },
+      {
+        from: obj.from,
+        title: obj.title,
+        unsubscribeLink: obj.unsubscribeLink,
+        actionSteps: analysis.actionSteps,
+        processedAt: new Date(),
+        processingDetails,
+        category: analysis.category,
+        importance: analysis.importance,
+        summary: analysis.summary,
+        importantUrls: analysis.importantUrls,
+        deadline: dayjs(analysis.deadline).toDate(),
+      }
+    )
+      .then((doc) => doc)
+      .catch((e) => {
+        error("NotProcessEmail", e);
+        return null;
+      });
+  }
 
   return History.findOneAndUpdate(
     {

@@ -1,5 +1,6 @@
 import { TemplateData } from "@service/types";
-import { escapeHTML, parseDate } from "@service/utils";
+import { escapeHTML } from "@service/utils";
+import dayjs from "dayjs";
 
 export const emailTemplate = (data: TemplateData): string =>
   `${data.importanceEmoji} ✉️ <b>${escapeHTML(data.from)}</b> for <b>${
@@ -8,9 +9,11 @@ export const emailTemplate = (data: TemplateData): string =>
 <b>${escapeHTML(data.title)}</b>
 <b>Category:</b> ${escapeHTML(data.category)}
 ${
-  data.deadline && parseDate(data.deadline.toString())
-    ? `<b>Deadline/Time of Event:</b> ${parseDate(data.deadline.toString())}\n`
-    : "\n"
+  data.deadline
+    ? `<b>Deadline/Time of Event:</b> ${dayjs(data.deadline).format(
+        "HH:mm, DD/MM/YYYY"
+      )}`
+    : ""
 }
 ${escapeHTML(data.summary)}
 ${

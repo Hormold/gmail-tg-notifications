@@ -41,8 +41,3 @@ export const extractUnsubscribeUrl = (header: string): string | null => {
   }
   return null;
 };
-
-export const parseDate = (date: string): string | null => {
-  const parsed = dayjs(date);
-  return parsed.isValid() ? parsed.format("HH:mm, DD/MM/YYYY") : null;
-};

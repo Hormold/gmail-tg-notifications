@@ -150,7 +150,8 @@ export const googlePushEndpoint = async (req, res) => {
             if (+analysis.importance === 0) {
               await NotProcessEmail(
                 emailHistoryObject as IEmailHistory,
-                "Email is not important"
+                "Email is not important",
+                analysis
               );
               continue;
             }
@@ -161,6 +162,15 @@ export const googlePushEndpoint = async (req, res) => {
               sanitizedEmail,
               analysis
             );
+
+            warning(`Processed message`, {
+              chatId,
+              email,
+              emailHistoryObject,
+              sanitizedEmail,
+              analysis,
+              telegramSendResult,
+            });
 
             if (telegramSendResult.success) {
               await UpdateEmailAnalysis(
