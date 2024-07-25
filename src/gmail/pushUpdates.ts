@@ -9,6 +9,7 @@ import { extractEmail } from "@service/utils";
 import {
   AddEmailToHistoryIfNew,
   NotProcessEmail,
+  UpdateBasicData,
   UpdateEmailAnalysis,
 } from "@controller/history";
 import { IEmailHistory } from "@model/history";
@@ -120,6 +121,9 @@ export const googlePushEndpoint = async (req, res) => {
           }
           await setValue(cacheKey, true, new Date(Date.now() + 5 * 60 * 1000));
 
+          // Updata basic data
+          await UpdateBasicData(emailHistoryObject as IEmailHistory, email);
+
           // Blacklist check
           if (
             user.blackListEmails &&
@@ -162,15 +166,6 @@ export const googlePushEndpoint = async (req, res) => {
               sanitizedEmail,
               analysis
             );
-
-            warning(`Processed message`, {
-              chatId,
-              email,
-              emailHistoryObject,
-              sanitizedEmail,
-              analysis,
-              telegramSendResult,
-            });
 
             if (telegramSendResult.success) {
               await UpdateEmailAnalysis(
