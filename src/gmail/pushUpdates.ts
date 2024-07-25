@@ -174,6 +174,7 @@ export const googlePushEndpoint = async (req, res) => {
 
             if (telegramSendResult.success) {
               await UpdateEmailAnalysis(
+                email,
                 emailHistoryObject as IEmailHistory,
                 analysis,
                 telegramSendResult

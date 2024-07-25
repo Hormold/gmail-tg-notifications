@@ -12,6 +12,7 @@ export interface IEmailHistory extends Document {
 
   from?: string;
   title?: string;
+
   summary?: string;
   unsubscribeLink?: string;
   importantUrls?: { url: string; text?: string }[];

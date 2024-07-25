@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import { CreateLinks } from "@db/controller/links";
 
 const emailRegex = /(?:<?\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b>?)/i;
 export const extractEmail = (input: string): string | null => {
@@ -41,3 +41,47 @@ export const extractUnsubscribeUrl = (header: string): string | null => {
   }
   return null;
 };
+
+function extractLinks(text) {
+  const linkRegex = /\[([^\]]+)\]/g;
+  const links = [];
+  let match;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    links.push(match[1]);
+  }
+
+  return links;
+}
+
+export async function replaceAllLinks(emailText, baseDomain) {
+  // Extract all links
+  const links = extractLinks(emailText);
+
+  // Remove duplicate links
+  const uniqueLinks = [...new Set(links)];
+
+  // Call CreateLinks function (assuming it's available in this context)
+  const shortenedLinks = await CreateLinks(uniqueLinks);
+
+  // Create a map of original URLs to shortened keys
+  const urlToKeyMap = new Map(
+    shortenedLinks.map((link) => [link.url, link.key])
+  );
+
+  // Replace links in the email text
+  let processedText = emailText;
+  for (const [originalUrl, key] of urlToKeyMap) {
+    const shortUrl = `${baseDomain}/l/${key}`;
+    processedText = processedText.replace(
+      new RegExp(
+        `\\[${originalUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\]`,
+        "g"
+      ),
+      `[${shortUrl}]`
+    );
+  }
+
+  // Return the modified email text
+  return processedText;
+}

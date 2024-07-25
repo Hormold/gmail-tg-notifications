@@ -19,7 +19,7 @@ ${escapeHTML(data.summary)}
 ${
   data.actionSteps.length
     ? `\n<b>Recommended Actions:</b>\n${data.actionSteps
-        .map((step, index) => `  ${index + 1}. ${step}`)
+        .map((step, index) => `${index + 1}. ${step}`)
         .join("\n")}`
     : ""
 }
