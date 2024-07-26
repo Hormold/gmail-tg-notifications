@@ -50,7 +50,7 @@ export interface TemplateData {
   category: string;
   summary: string;
   actionSteps?: string[];
-  deadline?: Date;
+  deadline?: string;
 }
 
 export interface TelegramMessageObject {

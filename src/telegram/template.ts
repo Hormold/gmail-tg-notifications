@@ -1,3 +1,4 @@
+// ToDo: deal with time zone. maybe change time to string and use just raw data from email instead of dayjs conversion
 import { TemplateData } from "@service/types";
 import { escapeHTML } from "@service/utils";
 import dayjs from "dayjs";
@@ -8,13 +9,7 @@ export const emailTemplate = (data: TemplateData): string =>
   }</b> (<i>${data.importance}/5, ${data.importanceText}</i>)
 <b>${escapeHTML(data.title)}</b>
 <b>Category:</b> ${escapeHTML(data.category)}
-${
-  data.deadline
-    ? `<b>Deadline/Time of Event:</b> ${dayjs(data.deadline).format(
-        "HH:mm, DD/MM/YYYY"
-      )}`
-    : ""
-}
+${data.deadline ? `<b>Deadline/Time of Event:</b> ${data.deadline}` : ""}
 ${escapeHTML(data.summary)}
 ${
   data.actionSteps.length

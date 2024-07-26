@@ -88,7 +88,7 @@ export async function NotProcessEmail(
         importance: analysis.importance,
         summary: analysis.summary,
         importantUrls: analysis.importantUrls,
-        deadline: dayjs(analysis.deadline).toDate(),
+        deadline: analysis.deadline,
       }
     )
       .then((doc) => doc)
@@ -135,7 +135,7 @@ export async function UpdateEmailAnalysis(
       title: email.title,
       summary: emailAnalyze.summary,
       importantUrls: emailAnalyze.importantUrls,
-      deadline: dayjs(emailAnalyze.deadline).toDate(),
+      deadline: emailAnalyze.deadline,
       unsubscribeLink: obj.unsubscribeLink,
 
       telegramMessageText: telegramMessage.messageText,

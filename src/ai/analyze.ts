@@ -1,6 +1,11 @@
 import OpenAI from "openai";
 import { error, warning } from "@service/logging";
 import { AnalysisResult, IMailObject } from "@service/types";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { IUser } from "@db/model/user";
+
+dayjs.extend(utc);
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,11 +13,17 @@ const openai = new OpenAI({
 
 export const analyzeEmail = async (
   email: IMailObject,
+  user: IUser,
   tryCount = 0
 ): Promise<AnalysisResult> => {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OpenAI API key is not set");
   }
+
+  const currentUTCTime = dayjs().utc().toISOString();
+  const userLocalTime = dayjs()
+    .utcOffset(user.timezoneUTCDiff ?? -7)
+    .toISOString();
 
   try {
     const response = await openai.chat.completions.create({
@@ -20,7 +31,9 @@ export const analyzeEmail = async (
       messages: [
         {
           role: "system",
-          content: `You are an AI assistant that analyzes emails and provides structured output with concrete action steps. Your final goal - help the user to manage their inbox more effectively. You can categorize emails, summarize their content, rate their importance, and suggest action steps based on the email content. Today: ${new Date().toISOString()}`,
+          content: `You are an AI assistant that analyzes emails and provides structured output with concrete action steps. Your final goal - help the user to manage their inbox more effectively. You can categorize emails, summarize their content, rate their importance, and suggest action steps based on the email content. Current time: ${currentUTCTime} (UTC), User time: ${userLocalTime} (UTC${
+            user.timezoneUTCDiff ?? -7
+          })`,
         },
         {
           role: "user",
@@ -28,7 +41,7 @@ export const analyzeEmail = async (
 
 Subject: ${email.title}
 From: ${email.from}
-Date: ${email.date ?? new Date().toISOString()}
+Date: ${email.date ?? currentUTCTime}
 Body:
 ${email.rawMessage}
 
@@ -75,9 +88,8 @@ Consider that emails with good discounts or beneficial promotions may receive a 
                 },
                 deadline: {
                   type: "string",
-                  format: "date-time",
                   description:
-                    "The deadline OR time of the event from email, if applicable",
+                    "The deadline OR time of the event from email, if applicable. Return in format: HH:mm, DD/MM/YYYY OR DD/MM/YYYY. Do not convet time zones, just extract the data from the email",
                 },
                 actionSteps: {
                   type: "array",
@@ -120,7 +132,7 @@ Consider that emails with good discounts or beneficial promotions may receive a 
     error("Error occured while analyzing email", err);
     // Try again on more time (max: 2 times)
     if (tryCount < 2) {
-      return analyzeEmail(email, tryCount + 1);
+      return analyzeEmail(email, user, tryCount + 1);
     }
     throw err;
   }

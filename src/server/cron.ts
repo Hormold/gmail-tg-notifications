@@ -33,7 +33,9 @@ cron.schedule("0 */1 * * *", async () => {
           isMorning ? "morning" : "evening"
         );
 
-        await bot.telegram.sendMessage(user.telegramID, result.summaryText);
+        await bot.telegram.sendMessage(user.telegramID, result.summaryText, {
+          parse_mode: "HTML",
+        });
       })
     );
     success("Morning summary generated successfully");

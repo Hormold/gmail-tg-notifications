@@ -16,7 +16,7 @@ export interface IEmailHistory extends Document {
   summary?: string;
   unsubscribeLink?: string;
   importantUrls?: { url: string; text?: string }[];
-  deadline?: Date;
+  deadline?: string;
   actionSteps?: string[];
 
   telegramMessageButtons?: InlineKeyboardButton[][];
@@ -37,7 +37,7 @@ const HistorySchema: Schema = new Schema({
 
   importantUrls: { type: [{ url: String, text: String }], required: false },
   unsubscribeLink: { type: String, required: false },
-  deadline: { type: Date, required: false },
+  deadline: { type: String, required: false },
 
   importance: { type: Number, required: false },
   actionSteps: { type: [String], required: false },

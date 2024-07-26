@@ -64,13 +64,7 @@ export const createTelegramMessage = async (
   );
 
   // Validate deadline if present
-  let deadline = null;
-  if (analysis.deadline) {
-    const deadlineParsed = dayjs(analysis.deadline);
-    if (deadlineParsed.isValid()) {
-      deadline = deadlineParsed.toDate();
-    }
-  }
+  let deadline = analysis.deadline;
 
   const md5Email = crypto
     .createHash("md5")
