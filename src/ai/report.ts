@@ -9,7 +9,7 @@ const openai = new OpenAI({
 export async function generateGroupEmailSummary(
   emails: string[],
   summaryType: "morning" | "evening" | "24hours",
-  chatId: string
+  chatId: number
 ): Promise<IEmailSummary> {
   const now = new Date();
   let startDate: Date;
@@ -80,7 +80,7 @@ async function generateGeneralSummary(
   summaryType: "morning" | "evening" | "24hours",
   startDate: Date,
   endDate: Date,
-  chatId: string
+  chatId: number
 ): Promise<string> {
   const periodText =
     summaryType === "24hours"

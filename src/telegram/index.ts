@@ -16,6 +16,8 @@ import { stage as authGmailStage } from "@commands/connectGmail";
 import blackListEmail from "@commands/blackList";
 import showFullText from "@commands/showFullText";
 import deleteMessage from "./commands/deleteMessage";
+import { FindUserById } from "@db/controller/user";
+import { generateGroupEmailSummary } from "@ai/report";
 export const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN);
 
 bot.use(session());
@@ -24,13 +26,32 @@ bot.start(startCb);
 bot.command(connectGmailCommand.command, connectGmailCb);
 bot.command(setChatsIdCommand.command, setChatsId);
 bot.command(getIdCommand.command, getId);
+
+bot.command("summary", async (ctx) => {
+  const user = await FindUserById(ctx.chat.id);
+  if (!user) {
+    return ctx.reply(`Not possible to run!`);
+  }
+  const userEmails = user.gmailAccounts.map((account) => account.email);
+  try {
+    const summary = await generateGroupEmailSummary(
+      userEmails,
+      "24hours",
+      ctx.chat.id
+    );
+    await ctx.reply(summary.summaryText);
+  } catch (err) {
+    await ctx.reply(`Wooops! Looks like we have internal problem!`);
+    error(`Error while generating summary for `, { userEmails, err });
+  }
+});
+
 bot.on("callback_query", async (ctx) => {
   // @ts-ignore Broken types?
   const data = ctx.callbackQuery.data.split(":");
   const action = data[0];
   const mailId = data[1].split("_")[1];
   const emailHash = data[1].split("_")[0];
-  console.log(`Action: ${action}, mailId: ${mailId}, emailHash: ${emailHash}`);
   switch (action) {
     case "blacklist":
       const result = await blackListEmail(ctx, mailId, emailHash);
