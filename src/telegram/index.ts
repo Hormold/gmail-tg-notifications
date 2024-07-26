@@ -16,6 +16,9 @@ import { stage as authGmailStage } from "@commands/connectGmail";
 import blackListEmail from "@commands/blackList";
 import showFullText from "@commands/showFullText";
 import deleteMessage from "./commands/deleteMessage";
+import { FindUserById } from "@db/controller/user";
+import { generateGroupEmailSummary } from "@ai/report";
+import { FindHistoryByTelegramMessageId } from "@db/controller/history";
 export const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN);
 
 bot.use(session());
@@ -24,22 +27,42 @@ bot.start(startCb);
 bot.command(connectGmailCommand.command, connectGmailCb);
 bot.command(setChatsIdCommand.command, setChatsId);
 bot.command(getIdCommand.command, getId);
+
+bot.command("summary", async (ctx) => {
+  const user = await FindUserById(ctx.chat.id);
+  if (!user) {
+    return ctx.reply(`Not possible to run!`);
+  }
+  // send typing event
+  await ctx.telegram.sendChatAction(ctx.chat.id, "typing");
+  const userEmails = user.gmailAccounts.map((account) => account.email);
+  try {
+    const summary = await generateGroupEmailSummary(userEmails, "24hours");
+    await ctx.reply(summary.summaryText, {
+      parse_mode: "HTML",
+    });
+  } catch (err) {
+    await ctx.reply(`Wooops! Looks like we have internal problem!`);
+    error(`Error while generating summary for `, { userEmails, err });
+  }
+});
+
 bot.on("callback_query", async (ctx) => {
   // @ts-ignore Broken types?
   const data = ctx.callbackQuery.data.split(":");
   const action = data[0];
   const mailId = data[1].split("_")[1];
   const emailHash = data[1].split("_")[0];
-  console.log(`Action: ${action}, mailId: ${mailId}, emailHash: ${emailHash}`);
   switch (action) {
     case "blacklist":
       const result = await blackListEmail(ctx, mailId, emailHash);
       await ctx.answerCbQuery(result);
       // Add reaction to self message
+      const isDeleted = !!result.match(/Removed/i);
       await ctx.telegram.setMessageReaction(
         ctx.chat.id,
         ctx.callbackQuery.message.message_id,
-        [{ type: "emoji", emoji: "👌" }]
+        [{ type: "emoji", emoji: isDeleted ? "👌" : "🕊" }]
       );
       break;
     case "remove":
@@ -54,13 +77,33 @@ bot.on("callback_query", async (ctx) => {
         await ctx.answerCbQuery("Error in deletion, try again later");
       }
       break;
+    case "back":
+      const original = await FindHistoryByTelegramMessageId(
+        ctx.callbackQuery.message.message_id
+      );
+      if (!original)
+        return ctx.answerCbQuery("Error in fetching original message");
+      await ctx.editMessageText(original.telegramMessageText, {
+        parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: original.telegramMessageButtons,
+        },
+      });
+      break;
     case "full":
       const text = await showFullText(ctx, mailId, emailHash);
-
+      const originalMessage = await FindHistoryByTelegramMessageId(
+        ctx.callbackQuery.message.message_id
+      );
       if (text)
         await ctx.editMessageText(text, {
           parse_mode: "HTML",
-          reply_markup: (ctx.callbackQuery.message as any).reply_markup,
+          reply_markup: {
+            inline_keyboard: [
+              ...originalMessage.telegramMessageButtons,
+              [{ text: "🔙 Back", callback_data: `back:${mailId}` }],
+            ],
+          },
         });
       else await ctx.answerCbQuery("Error in fetching full text");
       break;

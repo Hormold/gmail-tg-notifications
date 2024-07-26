@@ -7,7 +7,7 @@ import { toFormatedString } from "@service/date";
 import { IUser } from "@model/user";
 import { IAuthObject, IMailObject } from "@service/types";
 import { SCOPES } from "@service/projectConstants";
-import { extractUnsubscribeUrl } from "@service/utils";
+import { extractUnsubscribeUrl, replaceAllLinks } from "@service/utils";
 
 const createOAuth2Client = () => {
   const { client_secret, client_id, redirect_uris } = JSON.parse(
@@ -341,7 +341,10 @@ export const getEmails = async (
 
         return {
           id: mail.id,
-          message,
+          message: await replaceAllLinks(
+            message,
+            `https://${process.env.SERVER_PATH}`
+          ),
           attachments,
           date: toFormatedString(new Date(date)),
           from,

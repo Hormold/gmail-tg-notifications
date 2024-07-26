@@ -2,20 +2,55 @@ import { bot } from "@telegram/index";
 import { MAX_MESSAGE_LENGTH } from "@service/projectConstants";
 import crypto from "crypto";
 import dayjs from "dayjs";
+import { error } from "@service/logging";
 import { InlineKeyboardButton } from "telegraf/typings/core/types/typegram";
 import {
   AnalysisResult,
   IMailObject,
   TelegramMessageOutput,
 } from "@service/types";
-import { isValidUrl } from "@service/utils";
+import { cutLongText, isValidUrl } from "@service/utils";
 import { emailTemplate, getImportanceInfo } from "./template";
 
-export const sendErrorMessage = async (chatId: number, error: Error) => {
-  await bot.telegram.sendMessage(
-    chatId,
-    `Error occured while processing email: ${error?.message}`
-  );
+export const sendErrorMessage = async (
+  chatId: number,
+  errorObj: Error,
+  email: IMailObject
+) => {
+  const emailSummary = `
+From: ${email.from || "Unknown"}
+Date: ${email.date}
+Subject: ${email.title || "No subject"}
+Message Preview: ${cutLongText(email.message, 100)}
+Attachments: ${email.attachments.map((a) => a.name).join(", ") || "None"}
+`;
+
+  const errorMessage = `
+⚠️ Error occurred while processing email ⚠️
+
+Error details:
+${errorObj.message}
+
+Email details:
+${emailSummary}
+
+Please check the system logs for more information.
+`;
+
+  try {
+    await bot.telegram.sendMessage(chatId, errorMessage);
+  } catch (sendError) {
+    error("Failed to send enhanced error message:", sendError);
+    // Fallback to a simpler message if the enhanced one fails
+    try {
+      await bot.telegram.sendMessage(
+        chatId,
+        `Error occurred while processing email: ${errorObj.message}\nPlease check logs for details.`
+      );
+    } catch (fallbackError) {
+      error("Failed to send fallback error message:", fallbackError);
+    }
+  }
 };
 
 export const createTelegramMessage = async (

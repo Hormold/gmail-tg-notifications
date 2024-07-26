@@ -9,6 +9,7 @@ import { extractEmail } from "@service/utils";
 import {
   AddEmailToHistoryIfNew,
   NotProcessEmail,
+  UpdateBasicData,
   UpdateEmailAnalysis,
 } from "@controller/history";
 import { IEmailHistory } from "@model/history";
@@ -34,7 +35,7 @@ const handleChatError = async (user, chatId) => {
       user.telegramID,
       user.chatsId.filter((id) => id !== chatId)
     );
-    console.log("Deleted chatID due to error:", e);
+    success("Deleted chatID due to error:", e);
   }
 };
 
@@ -120,6 +121,13 @@ export const googlePushEndpoint = async (req, res) => {
           }
           await setValue(cacheKey, true, new Date(Date.now() + 5 * 60 * 1000));
 
+          // Updata basic data
+          await UpdateBasicData(emailHistoryObject as IEmailHistory, email);
+          console.log(
+            `[DEBUG] White list emails:`,
+            user.blackListEmails.map((email) => email.toLowerCase()),
+            email.from.toLowerCase()
+          );
           // Blacklist check
           if (
             user.blackListEmails &&
@@ -163,15 +171,6 @@ export const googlePushEndpoint = async (req, res) => {
               analysis
             );
 
-            warning(`Processed message`, {
-              chatId,
-              email,
-              emailHistoryObject,
-              sanitizedEmail,
-              analysis,
-              telegramSendResult,
-            });
-
             if (telegramSendResult.success) {
               await UpdateEmailAnalysis(
                 email,
@@ -186,7 +185,7 @@ export const googlePushEndpoint = async (req, res) => {
               );
             }
           } catch (err: any) {
-            await sendErrorMessage(chatId, err);
+            await sendErrorMessage(chatId, err, email);
             warning(`Error in sending message: ${err.message}`, err);
             await NotProcessEmail(
               emailHistoryObject as IEmailHistory,
@@ -199,8 +198,13 @@ export const googlePushEndpoint = async (req, res) => {
     );
 
     res.status(204).send();
-  } catch (e) {
-    console.error(e);
+  } catch (e: unknown) {
+    error(
+      `Error in googlePushEndpoint: ${
+        e instanceof Error ? e.message : String(e)
+      }`,
+      e
+    );
     res.status(500).send("Internal Server Error");
   }
 };
@@ -224,10 +228,7 @@ export const resubRoute = async (_req, res) => {
               auth.oauth
             );
             if (!success) {
-              error(
-                "resubRoute",
-                new Error(`Couldn't watch mails for ${account.email}`)
-              );
+              error(`Couldn't watch mails for ${account.email}`);
               await bot.telegram.sendMessage(
                 tgId,
                 `Try to renew gmail subscription for ${account.email}`
@@ -238,10 +239,7 @@ export const resubRoute = async (_req, res) => {
               );
             }
           } else {
-            error(
-              "resubRoute",
-              new Error(`Bad token, not authorized for ${account.email}`)
-            );
+            error(`Bad token, not authorized for ${account.email}`);
             await bot.telegram.sendMessage(
               tgId,
               `Renew gmail subscription for ${account.email}`

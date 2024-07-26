@@ -7,7 +7,8 @@ const openai = new OpenAI({
 });
 
 export const analyzeEmail = async (
-  email: IMailObject
+  email: IMailObject,
+  tryCount = 0
 ): Promise<AnalysisResult> => {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OpenAI API key is not set");
@@ -117,6 +118,10 @@ Consider that emails with good discounts or beneficial promotions may receive a 
     }
   } catch (err) {
     error("Error occured while analyzing email", err);
+    // Try again on more time (max: 2 times)
+    if (tryCount < 2) {
+      return analyzeEmail(email, tryCount + 1);
+    }
     throw err;
   }
 };

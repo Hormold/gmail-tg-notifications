@@ -27,6 +27,42 @@ export async function AddEmailToHistoryIfNew(
   });
 }
 
+export async function UpdateBasicData(
+  obj: Partial<IEmailHistory>,
+  email: IMailObject
+): Promise<boolean> {
+  success(`Updating email ${obj.email}:${obj.messageId} with basic data`);
+
+  return History.findOneAndUpdate(
+    {
+      email: obj.email,
+      messageId: obj.messageId,
+    },
+    {
+      from: email.from,
+      title: email.title,
+    }
+  )
+    .then(() => true)
+    .catch((e) => {
+      error("UpdateBasicData", e);
+      return false;
+    });
+}
+
+export async function FindHistoryByTelegramMessageId(
+  messageId: number
+): Promise<IEmailHistory | null> {
+  return History.findOne({
+    telegramMessageId: messageId,
+  })
+    .then((doc) => doc)
+    .catch((e) => {
+      error("FindHistoryByTelegramMessageId", e);
+      return null;
+    });
+}
+
 export async function NotProcessEmail(
   obj: Partial<IEmailHistory>,
   processingDetails: string,
@@ -44,8 +80,6 @@ export async function NotProcessEmail(
         messageId: obj.messageId,
       },
       {
-        from: obj.from,
-        title: obj.title,
         unsubscribeLink: obj.unsubscribeLink,
         actionSteps: analysis.actionSteps,
         processedAt: new Date(),
