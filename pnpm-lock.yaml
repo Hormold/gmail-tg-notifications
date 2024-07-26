@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@types/tz-lookup':
+        specifier: ^6.1.2
+        version: 6.1.2
       body-parser:
         specifier: ^1.19.0
         version: 1.20.2
@@ -56,6 +59,9 @@ importers:
       tsc-watch:
         specifier: ^6.2.0
         version: 6.2.0(typescript@5.5.3)
+      tz-lookup:
+        specifier: ^6.1.25
+        version: 6.1.25
     devDependencies:
       '@types/body-parser':
         specifier: ^1.19.1
@@ -219,6 +225,9 @@ packages:
 
   '@types/serve-static@1.15.7':
     resolution: {integrity: sha512-W8Ym+h8nhuRwaKPaDw34QUkwsGi6Rc4yYqvKFo5rm2FUEhCFbzVWrxXUxuKK8TASjWsysJY0nsmNCGhCOIsrOw==}
+
+  '@types/tz-lookup@6.1.2':
+    resolution: {integrity: sha512-9y31Xf/8FHXrCHjvVjGZLcsayAa6ABNc8bZlk6MPOQLLlr41tICSqW3TRPRIx2nodbzdKs5N7ipHWBrUsWUiAA==}
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
@@ -1657,6 +1666,9 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  tz-lookup@6.1.25:
+    resolution: {integrity: sha512-fFewT9o1uDzsW1QnUU1ValqaihFnwiUiiHr1S79/fxOzKXYYvX+EHeRnpvQJ9B3Qg67wPXT6QF2Esc4pFOrvLg==}
+
   undefsafe@2.0.5:
     resolution: {integrity: sha512-WxONCrssBM8TSPRqN5EmsjVrsv4A8X12J4ArBiiayv3DyyG3ZlIg6yysuuSYdZsVz3TKcTg2fd//Ujd4CHV1iA==}
 
@@ -1879,6 +1891,8 @@ snapshots:
       '@types/http-errors': 2.0.4
       '@types/node': 20.14.10
       '@types/send': 0.17.4
+
+  '@types/tz-lookup@6.1.2': {}
 
   abort-controller@3.0.0:
     dependencies:
@@ -3459,6 +3473,8 @@ snapshots:
       mime-types: 2.1.35
 
   typescript@5.5.3: {}
+
+  tz-lookup@6.1.25: {}
 
   undefsafe@2.0.5: {}
 

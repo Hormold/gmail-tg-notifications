@@ -16,10 +16,8 @@ export async function generateGroupEmailSummary(
 
   switch (summaryType) {
     case "morning":
-      startDate = new Date(now.setHours(0, 0, 0, 0));
-      break;
     case "evening":
-      startDate = new Date(now.setHours(12, 0, 0, 0));
+      startDate = new Date(now.getTime() - 12 * 60 * 60 * 1000);
       break;
     case "24hours":
       startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);

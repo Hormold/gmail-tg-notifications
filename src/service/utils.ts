@@ -1,4 +1,11 @@
 import { CreateLinks } from "@db/controller/links";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+import tzlookup from "tz-lookup";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const emailRegex = /(?:<?\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b>?)/i;
 export const extractEmail = (input: string): string | null => {
@@ -91,4 +98,14 @@ export const cutLongText = (text: string, maxLength: number): string => {
     return `${text.substr(0, maxLength)}...`;
   }
   return text;
+};
+
+export const getTimezoneOffset = (
+  latitude: number,
+  longitude: number
+): number => {
+  const timezoneName = tzlookup(latitude, longitude);
+  const localTime = dayjs().tz(timezoneName);
+  const offsetInMinutes = localTime.utcOffset();
+  return offsetInMinutes / 60;
 };

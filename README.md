@@ -134,7 +134,7 @@ This project implements a sophisticated Telegram bot that provides real-time not
 ## Usage
 
 1. Start a chat with your Telegram bot.
-2. Use the `/connect_gmail` command to link a Gmail account.
+2. Use the `/connect` command to link a Gmail account.
 3. Follow the prompts to authorize the bot to access your Gmail.
 4. The bot will now notify you of new emails in the connected account(s).
 

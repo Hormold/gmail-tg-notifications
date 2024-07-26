@@ -16,9 +16,11 @@ import { stage as authGmailStage } from "@commands/connectGmail";
 import blackListEmail from "@commands/blackList";
 import showFullText from "@commands/showFullText";
 import deleteMessage from "./commands/deleteMessage";
-import { FindUserById } from "@db/controller/user";
+import { FindUserById, SetUserTimeUTCOffset } from "@db/controller/user";
 import { generateGroupEmailSummary } from "@ai/report";
 import { FindHistoryByTelegramMessageId } from "@db/controller/history";
+import { getTimezoneOffset } from "@service/utils";
+
 export const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN);
 
 bot.use(session());
@@ -31,7 +33,7 @@ bot.command(getIdCommand.command, getId);
 bot.command("summary", async (ctx) => {
   const user = await FindUserById(ctx.chat.id);
   if (!user) {
-    return ctx.reply(`Not possible to run!`);
+    return ctx.reply(`Sorry, I can't find you in my database`);
   }
   // send typing event
   await ctx.telegram.sendChatAction(ctx.chat.id, "typing");
@@ -44,6 +46,43 @@ bot.command("summary", async (ctx) => {
   } catch (err) {
     await ctx.reply(`Wooops! Looks like we have internal problem!`);
     error(`Error while generating summary for `, { userEmails, err });
+  }
+});
+
+bot.on("location", async (ctx) => {
+  try {
+    const user = await FindUserById(ctx.chat.id);
+    if (!user) {
+      return ctx.reply(`Sorry, I can't find you in my database`);
+    }
+    const timezone = getTimezoneOffset(
+      ctx.message.location.latitude,
+      ctx.message.location.longitude
+    );
+
+    await SetUserTimeUTCOffset(ctx.chat.id, timezone);
+
+    await ctx.reply(
+      `Your timezone update. Your timezone is UTC${
+        timezone >= 0 ? "+" : ""
+      }${timezone}`,
+      {
+        reply_markup: {
+          remove_keyboard: true,
+        },
+      }
+    );
+  } catch (err) {
+    error("Error in setting timezone", err);
+    console.log(err);
+    ctx.reply(
+      "Error in setting timezone, share location again with bot to set timezone",
+      {
+        reply_markup: {
+          remove_keyboard: true,
+        },
+      }
+    );
   }
 });
 

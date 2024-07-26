@@ -134,3 +134,16 @@ export async function UpdateGmailAccount(
     .then(() => true)
     .catch((e) => (error(e), false));
 }
+
+export async function SetUserTimeUTCOffset(
+  tgId: IUser["telegramID"],
+  offset: IUser["timezoneUTCDiff"]
+) {
+  return User.findOneAndUpdate(
+    { telegramID: tgId },
+    { $set: { timezoneUTCDiff: offset } },
+    { upsert: true }
+  )
+    .then(() => true)
+    .catch((e) => (error(e), false));
+}

@@ -13,9 +13,7 @@ import {
 import { getEmailAdress, watchMails } from "@gmail/index";
 import { BotCommand, IAuthObject } from "@service/types";
 
-const gmailConnectScene = new Scenes.BaseScene<Scenes.SceneContext>(
-  "connect_gmail"
-);
+const gmailConnectScene = new Scenes.BaseScene<Scenes.SceneContext>("connect");
 gmailConnectScene.enter(async (ctx) => {
   const user = await FindUserById(ctx.chat.id);
   if (!user) {
@@ -120,7 +118,7 @@ gmailConnectScene.on("text", async (ctx) => {
     }
   } catch (e) {
     console.error(e);
-    ctx.reply("Error ocurred, couldn't subscribe. Try again: /connect_gmail");
+    ctx.reply("Error ocurred, couldn't subscribe. Try again: /connect");
     return ctx.scene.leave();
   }
 });
@@ -130,12 +128,12 @@ export const stage = new Scenes.Stage<Scenes.SceneContext>([gmailConnectScene]);
 const connectGmail: Middleware<Scenes.SceneContext> = async function (ctx) {
   const user = await checkUser(ctx);
   if (user !== false) {
-    ctx.scene.enter("connect_gmail");
+    ctx.scene.enter("connect");
   }
 };
 
 export const description: BotCommand = {
-  command: "connect_gmail",
+  command: "connect",
   description: "Subscribe to watch new emails",
 };
 
