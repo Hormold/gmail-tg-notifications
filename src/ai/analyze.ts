@@ -56,6 +56,8 @@ Provide the following information via structured output (function call):
 
 Spam examples: newsletters, irrelevant marketing emails, or unsolicited messages.
 Mandatory: if email contains some VERIFICATION code (or any other important code), extract it and add it to summary! This is very important for the user to not miss it.
+For important urls: extract realy useful links and important things, limit it to 5 and sort by importance.
+Do not include useless and non helpful links like privacy policy, terms, marketing links, etc.
 
 Consider that emails with good discounts or beneficial promotions may receive a higher rating. But you should realy mark spam as spam`,
         },
@@ -87,6 +89,13 @@ Consider that emails with good discounts or beneficial promotions may receive a 
                   type: "string",
                   description:
                     "The deadline OR time of the event from email, if applicable. Return in format: HH:mm, DD/MM/YYYY OR DD/MM/YYYY. Do not convet time zones, just extract the data from the email",
+                },
+                quickReponses: {
+                  type: "array",
+                  items: { type: "string" },
+                  maxContains: 3,
+                  description:
+                    "If this is human written email, return list of quick and short responses based on the email content. Max 3 items with up to 20 words each",
                 },
                 actionSteps: {
                   type: "array",

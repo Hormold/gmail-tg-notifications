@@ -30,7 +30,7 @@
         "google-auth-library": "^6.1.6",
         "googleapis": "^66.0.0",
         "html-to-text": "^5.1.1",
-        "mongoose": "^5.13.5",
+        "mongoose": "^5.13.22",
         "node-cron": "^3.0.3",
         "openai": "^4.52.7",
         "telegraf": "^4.16.3",
