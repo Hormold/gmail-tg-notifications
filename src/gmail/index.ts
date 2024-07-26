@@ -359,7 +359,7 @@ export const getEmails = async (
     await UpdateGmailAccount(user.telegramID, email.email, { historyId });
     return result.filter(Boolean) as IMailObject[];
   } catch (e) {
-    console.log(`Can't get emails`, e, { email, historyId, user });
+    error(`Can't get emails`, e, { email, historyId, user });
     return false;
   }
 };

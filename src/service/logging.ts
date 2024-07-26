@@ -18,22 +18,19 @@ const logColors = {
 function createLogger(level: "Error" | "Warning" | "Success" | "Info") {
   return (...args: any[]) => {
     const timestamp = formatDate(new Date());
-    const message = args
-      .map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : arg))
-      .join(" ");
 
-    const logMessage = `[${timestamp}] ${logColors[level]}${level}:${logColors.Reset} ${message}`;
+    const prefix = `[${timestamp}] ${logColors[level]}${level}:${logColors.Reset}`;
 
     switch (level) {
       case "Error":
-        console.error(logMessage);
+        console.error(prefix, ...args);
         break;
       case "Warning":
-        console.warn(logMessage);
+        console.warn(prefix, ...args);
         break;
       case "Success":
       case "Info":
-        console.log(logMessage);
+        console.log(prefix, ...args);
         break;
     }
   };

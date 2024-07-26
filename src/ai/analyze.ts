@@ -1,15 +1,12 @@
-import OpenAI from "openai";
 import { error, warning } from "@service/logging";
 import { AnalysisResult, IMailObject } from "@service/types";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IUser } from "@db/model/user";
+import { openai } from "./client";
+import { BASE_MODEL_NAME } from "@service/projectConstants";
 
 dayjs.extend(utc);
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 export const analyzeEmail = async (
   email: IMailObject,
@@ -27,7 +24,7 @@ export const analyzeEmail = async (
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: BASE_MODEL_NAME,
       messages: [
         {
           role: "system",

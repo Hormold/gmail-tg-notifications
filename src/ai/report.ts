@@ -1,10 +1,8 @@
 import EmailHistory, { IEmailHistory } from "@model/history";
 import EmailSummary, { IEmailSummary } from "@model/summary";
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { openai } from "./client";
+import { BASE_MODEL_NAME } from "@service/projectConstants";
+import { error } from "@service/logging";
 
 export async function generateGroupEmailSummary(
   emails: string[],
@@ -99,7 +97,7 @@ async function generateGeneralSummary(
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: BASE_MODEL_NAME,
       messages: [
         {
           role: "system",
@@ -157,7 +155,7 @@ async function generateGeneralSummary(
           },
         },
       ],
-      tool_choice: "auto",
+      tool_choice: "required",
     });
 
     const toolCalls = response.choices[0].message.tool_calls;
@@ -169,8 +167,8 @@ async function generateGeneralSummary(
         response.choices[0].message.content || "Unable to generate summary."
       );
     }
-  } catch (error) {
-    console.error("Error generating overall summary:", error);
+  } catch (err) {
+    error("Error generating overall summary:", err);
     return "Error generating overall summary. Please check the logs for more information.";
   }
 }

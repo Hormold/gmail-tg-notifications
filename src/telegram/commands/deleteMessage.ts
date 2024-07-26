@@ -1,6 +1,7 @@
 import { checkUser } from "@telegram/common";
 import { deleteEmailMessage } from "@gmail/index";
 import crypto from "crypto";
+import { error } from "@service/logging";
 
 const deleteMessage = async function (ctx, id: string, emailHash: string) {
   const user = await checkUser(ctx);
@@ -24,7 +25,7 @@ const deleteMessage = async function (ctx, id: string, emailHash: string) {
     await deleteEmailMessage(emailAccount, id);
     return true;
   } catch (e) {
-    console.log(`Error in deleting email`, { id, emailHash, e });
+    error(`Error in deleting email`, { id, emailHash, e });
     return false;
   }
 };

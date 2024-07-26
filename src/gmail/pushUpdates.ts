@@ -35,7 +35,7 @@ const handleChatError = async (user, chatId) => {
       user.telegramID,
       user.chatsId.filter((id) => id !== chatId)
     );
-    success("Deleted chatID due to error:", e);
+    error("Deleted chatID due to error:", e);
   }
 };
 
@@ -148,7 +148,7 @@ export const googlePushEndpoint = async (req, res) => {
           }
 
           try {
-            const analysis = await analyzeEmail(email);
+            const analysis = await analyzeEmail(email, user, 0);
 
             if (+analysis.importance === 0) {
               await NotProcessEmail(

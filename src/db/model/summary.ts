@@ -7,12 +7,10 @@ export interface IEmailSummary extends Document {
   endDate: Date;
   summaryText: string;
   emailCount: number;
-  //categoryBreakdown: Record<string, number>;
   importantEmails: Array<{
     messageId: string;
     title: string;
     importance: number;
-    telegramLink: string;
   }>;
   createdAt: Date;
 }
@@ -27,13 +25,11 @@ const EmailSummarySchema: Schema = new Schema({
   endDate: { type: Date, required: true },
   summaryText: { type: String, required: true },
   emailCount: { type: Number, required: true },
-  //categoryBreakdown: { type: Map, of: Number, required: true },
   importantEmails: [
     {
       messageId: String,
       title: String,
       importance: Number,
-      telegramLink: String,
     },
   ],
   createdAt: { type: Date, default: Date.now },
