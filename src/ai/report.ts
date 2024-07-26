@@ -161,7 +161,7 @@ async function generateGeneralSummary(
     const toolCalls = response.choices[0].message.tool_calls;
     if (toolCalls && toolCalls[0].function.name === "format_email_summary") {
       const summaryData = JSON.parse(toolCalls[0].function.arguments);
-      return formatSummaryTelegramHTML(summaryData);
+      return formatSummaryTelegramHTML(periodText, summaryData);
     } else {
       return (
         response.choices[0].message.content || "Unable to generate summary."
@@ -173,8 +173,11 @@ async function generateGeneralSummary(
   }
 }
 
-function formatSummaryTelegramHTML(summaryData: any): string {
-  let formattedSummary = `<b>Email Summary</b>\n\n`;
+function formatSummaryTelegramHTML(
+  periodText: string,
+  summaryData: any
+): string {
+  let formattedSummary = `<b>Email Summary for ${periodText}</b>\n\n`;
   formattedSummary += `<b>Overview</b>\n${summaryData.overview}\n\n`;
 
   formattedSummary += `<b>Important Emails</b>\n`;
