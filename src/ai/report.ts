@@ -32,6 +32,10 @@ export async function generateGroupEmailSummary(
     processedAt: { $gte: startDate, $lte: endDate },
   }).sort({ processedAt: 1 });
 
+  if (!emailHistories.length) {
+    throw new Error("No emails found for the specified period");
+  }
+
   const emailCounts: Record<string, number> = {};
   emails.forEach((email) => {
     emailCounts[email] = emailHistories.filter(
