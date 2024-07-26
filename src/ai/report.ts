@@ -25,6 +25,7 @@ export async function generateGroupEmailSummary(
   const emailHistories = await EmailHistory.find({
     email: { $in: emails },
     from: { $ne: null },
+    importance: { $ne: 0 }, // Ignore spam emails
     processedAt: { $gte: startDate, $lte: endDate },
   }).sort({ processedAt: 1 });
 
@@ -42,9 +43,8 @@ export async function generateGroupEmailSummary(
   const importantEmails = emailHistories
     .filter((email) => email.importance >= 4)
     .sort((a, b) => b.importance - a.importance)
-    .slice(0, 10)
+    .slice(0, 15)
     .map((email) => ({
-      messageId: email.messageId,
       title: email.title || "",
       importance: email.importance,
       from: email.from,
@@ -101,7 +101,7 @@ async function generateGeneralSummary(
       messages: [
         {
           role: "system",
-          content: `You are an AI assistant that analyzes emails and provides structured output with concrete action steps. Your final goal - help the user to manage their inbox more effectively. You can categorize emails, summarize their content, rate their importance, and suggest action steps based on the email content. Today: ${new Date().toISOString()}`,
+          content: `You are an AI assistant that analyzes emails and provides structured output with concrete action steps. Your final goal - help the user to manage their inbox more effectively. You can categorize emails, summarize their content, rate their importance, and suggest action steps based on the email content. Today: ${new Date().toISOString()}. Ignore verification emails (only keep unusual activiy notifcations), newsletters, and spam.`,
         },
         {
           role: "user",

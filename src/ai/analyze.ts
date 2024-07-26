@@ -20,7 +20,7 @@ export const analyzeEmail = async (
   const currentUTCTime = dayjs().utc().toISOString();
   const userLocalTime = dayjs()
     .utcOffset(user.timezoneUTCDiff ?? -7)
-    .toISOString();
+    .format("YYYY-MM-DD HH:mm:ss");
 
   try {
     const response = await openai.chat.completions.create({
