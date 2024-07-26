@@ -57,10 +57,11 @@ bot.on("callback_query", async (ctx) => {
       const result = await blackListEmail(ctx, mailId, emailHash);
       await ctx.answerCbQuery(result);
       // Add reaction to self message
+      const isDeleted = !!result.match(/Removed/i);
       await ctx.telegram.setMessageReaction(
         ctx.chat.id,
         ctx.callbackQuery.message.message_id,
-        [{ type: "emoji", emoji: "👌" }]
+        [{ type: "emoji", emoji: isDeleted ? "👌" : "🕊" }]
       );
       break;
     case "remove":

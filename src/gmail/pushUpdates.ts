@@ -123,7 +123,11 @@ export const googlePushEndpoint = async (req, res) => {
 
           // Updata basic data
           await UpdateBasicData(emailHistoryObject as IEmailHistory, email);
-
+          console.log(
+            `[DEBUG] White list emails:`,
+            user.blackListEmails.map((email) => email.toLowerCase()),
+            email.from.toLowerCase()
+          );
           // Blacklist check
           if (
             user.blackListEmails &&
