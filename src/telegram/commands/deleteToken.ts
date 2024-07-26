@@ -7,50 +7,57 @@ import { BotCommand } from "@service/types";
 const deleteToken = async function (ctx, id?: string) {
   const user = await checkUser(ctx);
   if (user === false) {
-    await ctx.reply("You are not registered. /start to proceed");
-    return;
+    return ctx.reply("You are not registered. /start to proceed");
   }
+
   if (user.gmailAccounts?.length === 0) {
-    await ctx.reply("You are not subscribed");
-    return;
+    return ctx.reply(`You have no emails to unsubscribe`);
   }
 
   if (!id) {
+    let message = [];
     for (const key in user.gmailAccounts) {
       const account = user.gmailAccounts[key];
-      await ctx.reply(
-        `Email: ${account.email}, to unsubscribe click /delete_token_${key}`
+      message.push(
+        `Email: ${account.email}, to unsubscribe click: /delete_token_${key}`
       );
     }
-    return;
+    return ctx.reply(
+      `Looks like you want to remove your email. Here is the list of your emails:\n\n${message.join(
+        "\n"
+      )}`
+    );
   }
 
   const account = user.gmailAccounts[id];
 
   if (!account) {
-    await ctx.reply("Invalid id");
-    return;
+    return ctx.reply("Invalid id");
   }
 
   const obj = await authorizeUser(account.token);
   if (obj !== null) {
     if (obj.authorized) {
       if (!(await stopNotifications(obj.oauth))) {
-        await ctx.reply("error while stopping notifications");
+        await ctx.reply(
+          "Oops! Something went wrong while unsubscribing, contact maintainer"
+        );
       } else {
-        await ctx.reply("Unsubscribed");
+        await ctx.reply(`We have stopped notifications for ${account.email}`);
       }
     } else {
-      await ctx.reply("Not authorized");
+      await ctx.reply("Not authorized to stop notifications");
     }
   } else {
     await ctx.reply("Error ocurred: auth obj is null");
   }
 
   if (await RemoveGmailAccount(user.telegramID, account.email)) {
-    await ctx.reply("successfully deleted token");
+    await ctx.reply("And we successfully removed your email from our database");
   } else {
-    await ctx.reply("error ocurred");
+    await ctx.reply(
+      "Error while removing email from database, contact maintainer"
+    );
   }
 };
 
