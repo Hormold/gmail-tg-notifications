@@ -1,6 +1,6 @@
 # Gmail Notification Telegram Bot
 
-This project implements a sophisticated Telegram bot that provides real-time notifications for new Gmail messages across multiple accounts per user. It's designed to help users efficiently manage their email inboxes without constantly checking multiple Gmail accounts.
+This project implements a simple Telegram bot that provides real-time notifications for new Gmail messages across multiple accounts per user. It's designed to help users efficiently manage their email inboxes without constantly checking multiple Gmail accounts.
 
 ## 🚀 Features
 
@@ -10,19 +10,20 @@ This project implements a sophisticated Telegram bot that provides real-time not
 - **🎚️ Importance Rating**: Automatically rates email importance on a scale of 0-5.
 - **📝 Message Preview**: Get a concise preview of the email content in the Telegram notification.
 - **🎯 Quick Actions**: Perform basic actions like blacklisting senders or removing notifications directly from Telegram.
-- **🔒 Privacy-focused**: The bot doesn't store email contents, only metadata for notifications.
 - **🔗 Smart Link Handling**: Extracts and provides quick access to important URLs in emails.
 - **🚫 Spam Protection**: Automatically filters out spam and low-importance emails.
 - **↩️ Unsubscribe Option**: Easily unsubscribe from newsletters directly from the notification.
+- **📊 Daily Summary**: Receive a daily summary of email activity and important messages.
+- **🔧 Easy Setup**: Simple setup process with detailed instructions
 
 ## 🛠️ Technical Stack
 
 - **Backend**: Node.js with TypeScript
 - **AI Integration**: OpenAI API (GPT-4)
-- **Email Integration**: Gmail API
+- **Email Integration**: Gmail API (OAuth2 for Gmail accounts)
 - **Bot Framework**: Telegraf (Telegram Bot API)
-- **Database**: MongoDB (implied from the code structure)
-- **Authentication**: OAuth2 for Gmail accounts
+- **Database**: MongoDB
+- **Deployment**: Google Cloud Functions, Heroku, or any Node.js hosting service
 
 ## 🧠 How It Works
 
@@ -34,6 +35,7 @@ This project implements a sophisticated Telegram bot that provides real-time not
 6. **Notification Creation**: Based on the AI analysis, a Telegram message is crafted with relevant information and action buttons.
 7. **Message Delivery**: The notification is sent to the user's designated Telegram chat(s).
 8. **User Interaction**: Users can interact with the notification to perform quick actions or view more details.
+9. **Daily Summary**: Users receive a daily summary of email activity and important messages at 8AM and 8PM local time.
 
 ## Setup Instructions
 
@@ -134,13 +136,11 @@ This project implements a sophisticated Telegram bot that provides real-time not
 ## Usage
 
 1. Start a chat with your Telegram bot.
-2. Use the `/connect` command to link a Gmail account.
+2. Use the `/connect` command to link a Gmail account and then `/new` to receive specific links to connect your Gmail account.
 3. Follow the prompts to authorize the bot to access your Gmail.
 4. The bot will now notify you of new emails in the connected account(s).
 
 ## Additional Commands
-
-- `/list_accounts`: List all connected Gmail accounts.
 - `/remove_account`: Remove a connected Gmail account.
 - `/help`: Display available commands and usage instructions.
 
