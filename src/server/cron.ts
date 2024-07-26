@@ -7,9 +7,14 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import cron from "node-cron";
+import { CleanUpAfterMonth } from "@db/controller/links";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+cron.schedule("0 0 * * *", async () => {
+  CleanUpAfterMonth();
+});
 
 cron.schedule("0 */1 * * *", async () => {
   try {

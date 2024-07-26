@@ -63,9 +63,6 @@ export const createTelegramMessage = async (
     analysis.importance
   );
 
-  // Validate deadline if present
-  let deadline = analysis.deadline;
-
   const md5Email = crypto
     .createHash("md5")
     .update(emailTo)
@@ -83,7 +80,7 @@ export const createTelegramMessage = async (
       category: analysis.category,
       summary: analysis.summary,
       actionSteps: analysis.actionSteps || [],
-      deadline,
+      deadline: analysis.deadline,
     }),
     id: `${md5Email}_${email.id}`,
     unsubscribeLink: email.unsubscribeLink,

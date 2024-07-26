@@ -342,14 +342,13 @@ export const getEmails = async (
         return {
           id: mail.id,
           message: await replaceAllLinks(
-            message,
+            message ?? mail.snippet ?? "",
             `https://${process.env.SERVER_PATH}`
           ),
           attachments,
           date: toFormatedString(new Date(date)),
           from,
           title,
-          rawMessage: message ?? mail.snippet ?? "",
           unsubscribeLink: unsubscribeLink
             ? extractUnsubscribeUrl(unsubscribeLink)
             : null,

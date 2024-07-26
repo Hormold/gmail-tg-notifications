@@ -1,6 +1,7 @@
 import { bot } from "@telegram/index";
 import Fastify from "fastify";
 import { googlePushEndpoint, resubRoute } from "@gmail/pushUpdates";
+import { GetLinkByKey } from "@db/controller/links";
 
 const app = Fastify({
   logger: true,
@@ -15,6 +16,16 @@ const main = async () => {
   app.post("/wh", webhook as any);
   app.post("/ggle", googlePushEndpoint);
   app.get("/resub", resubRoute);
+
+  app.get("/l/:key", async (req, res) => {
+    const { key } = req.params as { key: string };
+    const url = await GetLinkByKey(key);
+    if (url) {
+      return res.redirect(url);
+    }
+
+    return res.status(404).send("Not found");
+  });
 
   app.get("/", async (request, reply) => {
     if (request.query["code"]) {

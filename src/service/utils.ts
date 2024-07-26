@@ -89,6 +89,15 @@ export async function replaceAllLinks(emailText, baseDomain) {
     );
   }
 
+  // Remove double spaces, multiple newlines, and leading/trailing spaces
+  processedText = processedText
+    .replace(/ +/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  // Remove any non-ASCII characters
+  processedText = processedText.replace(/[^\x00-\x7F]/g, "");
+
   // Return the modified email text
   return processedText;
 }

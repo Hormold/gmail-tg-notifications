@@ -13,7 +13,6 @@ export interface IMailObject {
   from: string | undefined;
   date: string;
   title: string | undefined;
-  rawMessage: string;
   unsubscribeLink: string | null;
 }
 

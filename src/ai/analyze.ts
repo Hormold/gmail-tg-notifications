@@ -40,7 +40,7 @@ Subject: ${email.title}
 From: ${email.from}
 Date: ${email.date ?? currentUTCTime}
 Body:
-${email.rawMessage}
+${email.message}
 
 ------
 Provide the following information via structured output (function call):

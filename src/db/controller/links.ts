@@ -17,3 +17,23 @@ export async function CreateLinks(
 
   return links;
 }
+
+export async function GetLinkByKey(key: string): Promise<string | null> {
+  const link = await LinkShortener.findOne(
+    {
+      key,
+    },
+    { url: 1 }
+  );
+
+  return link ? link.url : null;
+}
+
+export async function CleanUpAfterMonth() {
+  const monthAgo = new Date();
+  monthAgo.setMonth(monthAgo.getMonth() - 1);
+
+  await LinkShortener.deleteMany({
+    createdAt: { $lte: monthAgo },
+  });
+}
