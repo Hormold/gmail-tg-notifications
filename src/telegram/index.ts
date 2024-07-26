@@ -18,6 +18,7 @@ import showFullText from "@commands/showFullText";
 import deleteMessage from "./commands/deleteMessage";
 import { FindUserById } from "@db/controller/user";
 import { generateGroupEmailSummary } from "@ai/report";
+import { FindHistoryByTelegramMessageId } from "@db/controller/history";
 export const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN);
 
 bot.use(session());
@@ -32,14 +33,14 @@ bot.command("summary", async (ctx) => {
   if (!user) {
     return ctx.reply(`Not possible to run!`);
   }
+  // send typing event
+  await ctx.telegram.sendChatAction(ctx.chat.id, "typing");
   const userEmails = user.gmailAccounts.map((account) => account.email);
   try {
-    const summary = await generateGroupEmailSummary(
-      userEmails,
-      "24hours",
-      ctx.chat.id
-    );
-    await ctx.reply(summary.summaryText);
+    const summary = await generateGroupEmailSummary(userEmails, "24hours");
+    await ctx.reply(summary.summaryText, {
+      parse_mode: "HTML",
+    });
   } catch (err) {
     await ctx.reply(`Wooops! Looks like we have internal problem!`);
     error(`Error while generating summary for `, { userEmails, err });
@@ -76,13 +77,33 @@ bot.on("callback_query", async (ctx) => {
         await ctx.answerCbQuery("Error in deletion, try again later");
       }
       break;
+    case "back":
+      const original = await FindHistoryByTelegramMessageId(
+        ctx.callbackQuery.message.message_id
+      );
+      if (!original)
+        return ctx.answerCbQuery("Error in fetching original message");
+      await ctx.editMessageText(original.telegramMessageText, {
+        parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: original.telegramMessageButtons,
+        },
+      });
+      break;
     case "full":
       const text = await showFullText(ctx, mailId, emailHash);
-
+      const originalMessage = await FindHistoryByTelegramMessageId(
+        ctx.callbackQuery.message.message_id
+      );
       if (text)
         await ctx.editMessageText(text, {
           parse_mode: "HTML",
-          reply_markup: (ctx.callbackQuery.message as any).reply_markup,
+          reply_markup: {
+            inline_keyboard: [
+              ...originalMessage.telegramMessageButtons,
+              [{ text: "🔙 Back", callback_data: `back:${mailId}` }],
+            ],
+          },
         });
       else await ctx.answerCbQuery("Error in fetching full text");
       break;

@@ -85,3 +85,10 @@ export async function replaceAllLinks(emailText, baseDomain) {
   // Return the modified email text
   return processedText;
 }
+
+export const cutLongText = (text: string, maxLength: number): string => {
+  if (text.length > maxLength) {
+    return `${text.substr(0, maxLength)}...`;
+  }
+  return text;
+};

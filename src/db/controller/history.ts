@@ -50,6 +50,19 @@ export async function UpdateBasicData(
     });
 }
 
+export async function FindHistoryByTelegramMessageId(
+  messageId: number
+): Promise<IEmailHistory | null> {
+  return History.findOne({
+    telegramMessageId: messageId,
+  })
+    .then((doc) => doc)
+    .catch((e) => {
+      error("FindHistoryByTelegramMessageId", e);
+      return null;
+    });
+}
+
 export async function NotProcessEmail(
   obj: Partial<IEmailHistory>,
   processingDetails: string,

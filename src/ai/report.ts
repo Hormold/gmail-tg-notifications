@@ -8,8 +8,7 @@ const openai = new OpenAI({
 
 export async function generateGroupEmailSummary(
   emails: string[],
-  summaryType: "morning" | "evening" | "24hours",
-  chatId: number
+  summaryType: "morning" | "evening" | "24hours"
 ): Promise<IEmailSummary> {
   const now = new Date();
   let startDate: Date;
@@ -48,7 +47,6 @@ export async function generateGroupEmailSummary(
       messageId: email.messageId,
       title: email.title || "",
       importance: email.importance,
-      telegramLink: `https://t.me/c/${chatId}/${email.telegramMessageId}`,
       from: email.from,
       email: email.email,
     }));
@@ -57,8 +55,7 @@ export async function generateGroupEmailSummary(
     emailHistories,
     summaryType,
     startDate,
-    endDate,
-    chatId
+    endDate
   );
 
   const summary: IEmailSummary = new EmailSummary({
@@ -79,8 +76,7 @@ async function generateGeneralSummary(
   emails: IEmailHistory[],
   summaryType: "morning" | "evening" | "24hours",
   startDate: Date,
-  endDate: Date,
-  chatId: number
+  endDate: Date
 ): Promise<string> {
   const periodText =
     summaryType === "24hours"
@@ -97,7 +93,6 @@ async function generateGeneralSummary(
     from: email.from,
     title: email.title,
     email: email.email,
-    telegramLink: `https://t.me/c/${chatId}/${email.telegramMessageId}`,
   }));
 
   try {
@@ -117,11 +112,9 @@ async function generateGeneralSummary(
           ${JSON.stringify(emailSummaries, null, 2)}
 
           Please provide:
-          1. A brief overview of the email activity
-          2. Highlight the most important emails or trends, including Telegram links
-          3. Summarize any urgent action items
-          4. Any notable patterns or insights
-          5. Categorize emails by sender domain if possible`,
+          1. A brief overview of the email activity for the period
+          2. Highlight the most important emails or trends (up to 5)
+          3. Summarize any urgent action items if applicable`,
         },
       ],
       tools: [
@@ -129,13 +122,14 @@ async function generateGeneralSummary(
           type: "function",
           function: {
             name: "format_email_summary",
-            description: "Formats the email summary with Telegram HTML syntax",
+            description: "Formats the email summary",
             parameters: {
               type: "object",
               properties: {
                 overview: {
                   type: "string",
-                  description: "A brief overview of the email activity",
+                  description:
+                    "A brief overview of the email activity for the period",
                 },
                 importantEmails: {
                   type: "array",
@@ -145,15 +139,18 @@ async function generateGeneralSummary(
                       title: { type: "string" },
                       importance: { type: "number" },
                       summary: { type: "string" },
-                      telegramLink: { type: "string" },
                     },
                   },
                   description:
                     "A list of important emails with titles, importance ratings, summaries, and Telegram links",
                 },
-                urgentActions: { type: "array", items: { type: "string" } },
+                urgentActions: {
+                  type: "array",
+                  items: { type: "string" },
+                  description: "A list of urgent action items if applicable",
+                },
               },
-              required: ["overview", "importantEmails", "urgentActions"],
+              required: ["overview", "importantEmails"],
             },
           },
         },
@@ -182,13 +179,15 @@ function formatSummaryTelegramHTML(summaryData: any): string {
 
   formattedSummary += `<b>Important Emails</b>\n`;
   summaryData.importantEmails.forEach((email: any) => {
-    formattedSummary += `• <a href="${email.telegramLink}">${email.title}</a> (Importance: ${email.importance})\n  ${email.summary}\n\n`;
+    formattedSummary += `• <b>${email.title}</b> (Importance: ${email.importance})\n  ${email.summary}\n\n`;
   });
 
-  formattedSummary += `<b>Urgent Actions</b>\n`;
-  summaryData.urgentActions.forEach((action: string) => {
-    formattedSummary += `• ${action}\n`;
-  });
+  if (summaryData.urgentActions.length > 0) {
+    formattedSummary += `<b>Urgent Actions</b>\n`;
+    summaryData.urgentActions.forEach((action: string) => {
+      formattedSummary += `• ${action}\n`;
+    });
+  }
 
   return formattedSummary;
 }

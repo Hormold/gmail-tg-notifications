@@ -12,11 +12,7 @@ cron.schedule("0 8 * * *", async () => {
     await Promise.all(
       users.flatMap(async (user) => {
         const userEmails = user.gmailAccounts.map((account) => account.email);
-        const result = await generateGroupEmailSummary(
-          userEmails,
-          "morning",
-          Number(user.telegramID)
-        );
+        const result = await generateGroupEmailSummary(userEmails, "morning");
 
         await bot.telegram.sendMessage(user.telegramID, result.summaryText);
       })
@@ -35,11 +31,7 @@ cron.schedule("0 20 * * *", async () => {
     await Promise.all(
       users.flatMap(async (user) => {
         const userEmails = user.gmailAccounts.map((account) => account.email);
-        const result = await generateGroupEmailSummary(
-          userEmails,
-          "evening",
-          Number(user.telegramID)
-        );
+        const result = await generateGroupEmailSummary(userEmails, "evening");
         await bot.telegram.sendMessage(user.telegramID, result.summaryText);
       })
     );
