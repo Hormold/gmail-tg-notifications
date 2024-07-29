@@ -1,7 +1,13 @@
 import { checkUser } from "@telegram/common";
 import { getEmailDetailsById } from "@gmail/index";
 import crypto from "crypto";
-import { clearTags, extractEmail } from "@service/utils";
+import {
+  clearTags,
+  extractEmail,
+  replaceAllLinks,
+  replaceAllLinksInPlainText,
+} from "@service/utils";
+import { MAX_MESSAGE_LENGTH } from "@service/projectConstants";
 
 const getFullText = async function (ctx, id: string, emailHash: string) {
   const user = await checkUser(ctx);
@@ -32,10 +38,12 @@ const getFullText = async function (ctx, id: string, emailHash: string) {
     return null;
   }
 
+  const text = await replaceAllLinksInPlainText(data.message);
+
   const message =
-    data.message.length > 3500
-      ? `${data.message.substr(0, 3500)}\nMessage exceeded max length`
-      : data.message;
+    text.length > MAX_MESSAGE_LENGTH
+      ? `${text.substr(0, MAX_MESSAGE_LENGTH)}...\n`
+      : text;
 
   return `<b>Full message text from ${extractEmail(data.from)} - ${
     data.subject

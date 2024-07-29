@@ -206,10 +206,10 @@ export const getEmailDetailsById = async (
       throw new Error(`Gmail API error: ${res.statusText}`);
     let emailText = res.data.snippet;
     if (res.data.payload.parts) {
-      const htmlParts = res.data.payload.parts.filter((x) =>
-        x.mimeType.includes("text/html")
+      const textParts = res.data.payload.parts.filter((x) =>
+        x.mimeType.includes("text/plain")
       );
-      const message = htmlParts.reduce(
+      const message = textParts.reduce(
         (prev, cur) => prev + base64ToString(cur.body.data),
         ""
       );
@@ -341,10 +341,7 @@ export const getEmails = async (
 
         return {
           id: mail.id,
-          message: await replaceAllLinks(
-            message ?? mail.snippet ?? "",
-            `https://${process.env.SERVER_PATH}`
-          ),
+          message: await replaceAllLinks(message ?? mail.snippet ?? ""),
           attachments,
           date: toFormatedString(new Date(date)),
           from,

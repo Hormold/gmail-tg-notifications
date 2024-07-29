@@ -4,6 +4,7 @@ import mongoose, { Schema, Document } from "mongoose";
 interface ILinkShortener extends Document {
   key: string;
   url: string;
+  ttl?: Date;
   createdAt: Date;
 }
 
@@ -11,6 +12,7 @@ interface ILinkShortener extends Document {
 const LinkShortnerSchema: Schema = new Schema({
   key: { type: String, required: true, unique: true },
   url: { type: String, required: true },
+  ttl: { type: Date, required: false },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -1,21 +1,50 @@
 import { LinkShortener } from "@db/model/links";
 
 export async function CreateLinks(
-  url: string[]
+  url: string[],
+  ttl?: Date
 ): Promise<{ key: string; url: string }[]> {
+  const toReturn: { key: string; url: string }[] = [];
+  // Check all urls in DB first
+  const existingLinks = await LinkShortener.find({
+    url: { $in: url },
+  });
+
+  // Remove existing links from the list
+  const newUrls = url.filter(
+    (url) => !existingLinks.find((link) => link.url === url)
+  );
+
   // Generate key for each link (random, 8 characters a-z0-9A-Z)
-  const keys = url.map(() => Math.random().toString(36).substring(2, 10));
+  const keys = newUrls.map(() => Math.random().toString(36).substring(2, 10));
 
   // Create array of objects to insert
   const links = keys.map((key, index) => ({
     key,
-    url: url[index],
+    url: newUrls[index],
+    ttl,
   }));
 
   // Insert into database
-  await LinkShortener.insertMany(links);
+  const creationResult = await LinkShortener.insertMany(links);
 
-  return links;
+  // Return all links
+  toReturn.push(
+    ...creationResult.map((link) => ({
+      key: link.key,
+      url: link.url,
+    }))
+  );
+
+  // Return existing links as well
+  toReturn.push(
+    ...existingLinks.map((link) => ({
+      key: link.key,
+      url: link.url,
+    }))
+  );
+
+  return toReturn;
 }
 
 export async function GetLinkByKey(key: string): Promise<string | null> {
@@ -35,5 +64,10 @@ export async function CleanUpAfterMonth() {
 
   await LinkShortener.deleteMany({
     createdAt: { $lte: monthAgo },
+  });
+
+  // Or clean up by TTL
+  await LinkShortener.deleteMany({
+    ttl: { $lte: new Date() },
   });
 }
