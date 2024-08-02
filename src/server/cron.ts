@@ -1,5 +1,10 @@
 import { generateGroupEmailSummary } from "@ai/report";
-import { FindAll } from "@db/controller/user";
+import {
+  FindAll,
+  FindAllSubscribedOverdue,
+  FindAllTrial,
+  UpdateUser,
+} from "@db/controller/user";
 import { authorizeUser, watchMails } from "@gmail/index";
 import { error, info, success } from "@service/logging";
 import { bot } from "@telegram/index";
@@ -14,6 +19,44 @@ dayjs.extend(timezone);
 
 cron.schedule("0 0 * * *", async () => {
   CleanUpAfterMonth();
+});
+
+cron.schedule("0 */1 * * *", async () => {
+  const users = await FindAllTrial();
+  if (!Array.isArray(users)) return [];
+
+  await Promise.all(
+    users.map(async (user) => {
+      await UpdateUser(user.telegramID, {
+        isTrial: false,
+      });
+      await bot.telegram.sendMessage(
+        user.telegramID,
+        "Your trial has ended. You can continue using the service by subscribing to a plan: /subscribe"
+      );
+    })
+  );
+});
+
+cron.schedule("0 */1 * * *", async () => {
+  const users = await FindAllSubscribedOverdue();
+  if (!Array.isArray(users)) return [];
+
+  await Promise.all(
+    users.map(async (user) => {
+      await UpdateUser(user.telegramID, {
+        isTrial: false,
+        subscription: {
+          ...user.subscription,
+          isActive: false,
+        },
+      });
+      await bot.telegram.sendMessage(
+        user.telegramID,
+        "Your subscription has ended. You can renew your subscription by subscribing to a plan: /subscribe"
+      );
+    })
+  );
 });
 
 cron.schedule("0 */1 * * *", async () => {

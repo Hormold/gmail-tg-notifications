@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IUser } from "@db/model/user";
 import { openai } from "./client";
-import { BASE_MODEL_NAME } from "@service/projectConstants";
+import { BASE_MODEL_NAME, TRIAL_MODEL_NAME } from "@service/projectConstants";
 
 dayjs.extend(utc);
 
@@ -24,7 +24,7 @@ export const analyzeEmail = async (
 
   try {
     const response = await openai.chat.completions.create({
-      model: BASE_MODEL_NAME,
+      model: user.isTrial ? TRIAL_MODEL_NAME : BASE_MODEL_NAME,
       messages: [
         {
           role: "system",

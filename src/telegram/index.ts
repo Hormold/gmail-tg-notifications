@@ -9,6 +9,11 @@ import setChatsId, {
 } from "@commands/setChatsId";
 import getId, { description as getIdCommand } from "@commands/getId";
 import help, { description as helpCommand } from "@commands/help";
+import payment, {
+  description as paymentCommand,
+  onSuccessfulPayment,
+  stage as subscriptionScene,
+} from "@commands/subscribe";
 import deleteTokenCb, {
   description as deleteTokenCommand,
 } from "@commands/deleteToken";
@@ -25,10 +30,16 @@ export const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN);
 
 bot.use(session());
 bot.use(authGmailStage.middleware());
+bot.use(subscriptionScene.middleware());
 bot.start(startCb);
 bot.command(connectGmailCommand.command, connectGmailCb);
 bot.command(setChatsIdCommand.command, setChatsId);
 bot.command(getIdCommand.command, getId);
+bot.command(paymentCommand.command, payment);
+bot.on("pre_checkout_query", (ctx) => {
+  ctx.answerPreCheckoutQuery(true);
+});
+bot.on("successful_payment", onSuccessfulPayment);
 
 bot.command("summary", async (ctx) => {
   const user = await FindUserById(ctx.chat.id);
@@ -151,7 +162,7 @@ bot.on("callback_query", async (ctx) => {
   }
 });
 
-bot.command("/delete_token", (ctx) => deleteTokenCb(ctx));
+bot.command("delete_token", (ctx) => deleteTokenCb(ctx));
 bot.hears(/^\/delete_token_([a-zA-Z0-9]+)$/, async (ctx) => {
   const id = ctx.match[1];
   await deleteTokenCb(ctx, id);
@@ -167,6 +178,7 @@ bot.telegram
     helpCommand,
     getIdCommand,
     deleteTokenCommand,
+    paymentCommand,
   ])
   .catch((e) => error(e));
 

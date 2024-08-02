@@ -1,5 +1,6 @@
 import User, { IUser } from "@model/user";
 import { error } from "@service/logging";
+import { TRIAL_PERIOD } from "@service/projectConstants";
 
 export interface ICreateUserInput {
   telegramID: IUser["telegramID"];
@@ -33,6 +34,24 @@ export async function FindUserById(tgId: IUser["telegramID"]) {
 
 export async function FindAll() {
   return User.find({})
+    .then((x) => x)
+    .catch((e) => (error(e), false));
+}
+
+export async function FindAllTrial() {
+  return User.find({
+    isTrial: true,
+    createdAt: { $gte: new Date(Date.now() - TRIAL_PERIOD) },
+  })
+    .then((x) => x)
+    .catch((e) => (error(e), false));
+}
+
+export async function FindAllSubscribedOverdue() {
+  return User.find({
+    "subscription.endDate": { $lte: new Date() },
+    "subscription.isActive": true,
+  })
     .then((x) => x)
     .catch((e) => (error(e), false));
 }
@@ -144,6 +163,15 @@ export async function SetUserTimeUTCOffset(
     { $set: { timezoneUTCDiff: offset } },
     { upsert: true }
   )
+    .then(() => true)
+    .catch((e) => (error(e), false));
+}
+
+export async function UpdateUser(
+  tgId: IUser["telegramID"],
+  updates: Partial<IUser>
+) {
+  return User.findOneAndUpdate({ telegramID: tgId }, updates)
     .then(() => true)
     .catch((e) => (error(e), false));
 }

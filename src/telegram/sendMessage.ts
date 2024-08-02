@@ -158,10 +158,7 @@ export const sendMessageWithAttachments = async (
 
   const message =
     mailObject.message.length > MAX_MESSAGE_LENGTH
-      ? `${mailObject.message.substr(
-          0,
-          MAX_MESSAGE_LENGTH
-        )}\nMessage exceeded max length`
+      ? `${mailObject.message.substr(0, MAX_MESSAGE_LENGTH)}...\n`
       : mailObject.message;
 
   const sent = await bot.telegram.sendMessage(chatId, message);
