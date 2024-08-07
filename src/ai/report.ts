@@ -119,12 +119,7 @@ async function generateGeneralSummary(
           3. Summarize any urgent action items if applicable`,
         },
       ],
-      tools: [
-        zodFunction({
-          name: "analyzeEmail",
-          parameters: formatEmailSummarySchema,
-        }),
-      ],
+      tools: [formatEmailSummarySchema],
       tool_choice: "required",
     });
 

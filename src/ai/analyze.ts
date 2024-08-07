@@ -5,7 +5,6 @@ import utc from "dayjs/plugin/utc";
 import { IUser } from "@db/model/user";
 import { openai } from "@ai/client";
 import { BASE_MODEL_NAME, TRIAL_MODEL_NAME } from "@service/projectConstants";
-import { zodFunction } from "openai/helpers/zod";
 import { analyzeEmailSchema } from "@ai/schemas";
 
 dayjs.extend(utc);
@@ -67,9 +66,7 @@ Consider that emails with good discounts or beneficial promotions may receive a 
         },
       ],
       tool_choice: "required",
-      tools: [
-        zodFunction({ name: "analyzeEmail", parameters: analyzeEmailSchema }),
-      ],
+      tools: [analyzeEmailSchema],
     });
 
     const functionCall = response?.choices?.[0]?.message?.tool_calls?.[0];
