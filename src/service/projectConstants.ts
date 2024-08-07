@@ -1,7 +1,7 @@
 export const MAX_MESSAGE_LENGTH = 3800;
 export const EMAIL_HISTORY_ID_MAP_KEY = "emailHistoryIdMap";
 export const SCOPES = ["https://www.googleapis.com/auth/gmail.modify"];
-export const BASE_MODEL_NAME = "gpt-4o-mini";
+export const BASE_MODEL_NAME = "gpt-4o-2024-08-06";
 export const TRIAL_MODEL_NAME = "gpt-4o-mini";
 export const TRIAL_PERIOD = 24 * 60 * 60 * 1000;
 export const SUBSCRIBTIONS = [

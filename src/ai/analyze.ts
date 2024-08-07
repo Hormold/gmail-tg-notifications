@@ -3,8 +3,10 @@ import { AnalysisResult, IMailObject } from "@service/types";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { IUser } from "@db/model/user";
-import { openai } from "./client";
+import { openai } from "@ai/client";
 import { BASE_MODEL_NAME, TRIAL_MODEL_NAME } from "@service/projectConstants";
+import { zodFunction } from "openai/helpers/zod";
+import { analyzeEmailSchema } from "@ai/schemas";
 
 dayjs.extend(utc);
 
@@ -23,7 +25,7 @@ export const analyzeEmail = async (
     .format("YYYY-MM-DD HH:mm:ss");
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await openai.beta.chat.completions.parse({
       model: user.isTrial ? TRIAL_MODEL_NAME : BASE_MODEL_NAME,
       messages: [
         {
@@ -48,7 +50,7 @@ Provide the following information via structured output (function call):
 2. Brief summary of the content (no more than 20 words)
 3. Importance rating from 0 to 5, where:
    0 - spam or useless marketing email (also newsletter, useless rewards or promotions, etc)
-   1-2 - low importance (notifications from services, etc)
+   1-2 - low importance (imporant notifications from services, etc)
    3-4 - medium importance (work-related, personal, etc)
    5 - high importance or requires immediate attention (urgent, important deadlines, etc)
 4. Concrete action steps (up to 3) based on the email content. Include specific deadlines or time frames if applicable.
@@ -59,77 +61,21 @@ Mandatory: if email contains some VERIFICATION code (or any other important code
 For important urls: extract realy useful links and important things, limit it to 5 and sort by importance.
 Do not include useless and non helpful links like privacy policy, terms, marketing links, etc.
 
+Important: All marketing emails without real good deals should be rated as 0.
+
 Consider that emails with good discounts or beneficial promotions may receive a higher rating. But you should realy mark spam as spam`,
         },
       ],
       tool_choice: "required",
       tools: [
-        {
-          type: "function",
-          function: {
-            name: "analyze_email",
-            description:
-              "Analyzes an email and returns structured information about it",
-            parameters: {
-              type: "object",
-              properties: {
-                category: {
-                  type: "string",
-                  description: "The category of the email",
-                },
-                summary: {
-                  type: "string",
-                  description: "A brief summary of the email content",
-                },
-                importance: {
-                  type: "number",
-                  description: "The importance rating of the email from 0 to 5",
-                },
-                deadline: {
-                  type: "string",
-                  description:
-                    "The deadline OR time of the event from email, if applicable. Return in format: HH:mm, DD/MM/YYYY OR DD/MM/YYYY. Do not convet time zones, just extract the data from the email",
-                },
-                quickReponses: {
-                  type: "array",
-                  items: { type: "string" },
-                  maxContains: 3,
-                  description:
-                    "If this is human written email, return list of quick and short responses based on the email content. Max 3 items with up to 20 words each",
-                },
-                actionSteps: {
-                  type: "array",
-                  items: { type: "string" },
-                  maxContains: 5,
-                  description:
-                    "List of concrete action steps based on the email content, with deadlines if applicable. Ignore if useless in this case!!",
-                },
-                importantUrls: {
-                  description:
-                    "If email contains special URL to follow (confirmation, etc), extract them (+Text to display for the action link, if applicable) and provide here. Extract full links, not just domains!",
-                  type: "array",
-                  maxContains: 5,
-                  items: {
-                    type: "object",
-                    properties: {
-                      url: { type: "string" },
-                      text: { type: "string" },
-                    },
-                    required: ["url", "text"],
-                  },
-                },
-              },
-              required: ["category", "summary", "importance"],
-            },
-          },
-        },
+        zodFunction({ name: "analyzeEmail", parameters: analyzeEmailSchema }),
       ],
     });
 
-    const functionCall = response.choices[0].message.tool_calls[0];
-    if (functionCall && functionCall.function.name === "analyze_email") {
-      const result = JSON.parse(functionCall.function.arguments || "{}");
-      return result as AnalysisResult;
+    const functionCall = response?.choices?.[0]?.message?.tool_calls?.[0];
+    if (functionCall && functionCall?.function) {
+      const result = functionCall.function.parsed_arguments as AnalysisResult;
+      return result;
     } else {
       warning("Unexpected response format from GPT API", response);
       throw new Error("Unexpected response format from GPT API");

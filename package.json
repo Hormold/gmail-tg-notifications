@@ -33,11 +33,12 @@
         "html-to-text": "^5.1.1",
         "mongoose": "^5.13.22",
         "node-cron": "^3.0.3",
-        "openai": "^4.52.7",
+        "openai": "^4.55.0",
         "telegraf": "^4.16.3",
         "ts-node": "^10.9.2",
         "tsc-watch": "^6.2.0",
-        "tz-lookup": "^6.1.25"
+        "tz-lookup": "^6.1.25",
+        "zod": "^3.23.8"
     },
     "devDependencies": {
         "@types/body-parser": "^1.19.1",

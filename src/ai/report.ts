@@ -3,6 +3,8 @@ import EmailSummary, { IEmailSummary } from "@model/summary";
 import { openai } from "./client";
 import { BASE_MODEL_NAME } from "@service/projectConstants";
 import { error } from "@service/logging";
+import { zodFunction } from "openai/helpers/zod";
+import { formatEmailSummarySchema } from "./schemas";
 
 export async function generateGroupEmailSummary(
   emails: string[],
@@ -96,7 +98,7 @@ async function generateGeneralSummary(
   }));
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await openai.beta.chat.completions.parse({
       model: BASE_MODEL_NAME,
       messages: [
         {
@@ -118,49 +120,17 @@ async function generateGeneralSummary(
         },
       ],
       tools: [
-        {
-          type: "function",
-          function: {
-            name: "format_email_summary",
-            description: "Formats the email summary",
-            parameters: {
-              type: "object",
-              properties: {
-                overview: {
-                  type: "string",
-                  description:
-                    "A brief overview of the email activity for the period",
-                },
-                importantEmails: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      title: { type: "string" },
-                      importance: { type: "number" },
-                      summary: { type: "string" },
-                    },
-                  },
-                  description:
-                    "A list of important emails with titles, importance ratings, summaries, and Telegram links",
-                },
-                urgentActions: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "A list of urgent action items if applicable",
-                },
-              },
-              required: ["overview", "importantEmails"],
-            },
-          },
-        },
+        zodFunction({
+          name: "analyzeEmail",
+          parameters: formatEmailSummarySchema,
+        }),
       ],
       tool_choice: "required",
     });
 
-    const toolCalls = response.choices[0].message.tool_calls;
-    if (toolCalls && toolCalls[0].function.name === "format_email_summary") {
-      const summaryData = JSON.parse(toolCalls[0].function.arguments);
+    const toolCalls = response?.choices?.[0]?.message?.tool_calls?.[0];
+    if (toolCalls && toolCalls?.function) {
+      const summaryData = toolCalls.function.parsed_arguments;
       return formatSummaryTelegramHTML(periodText, summaryData);
     } else {
       return (
