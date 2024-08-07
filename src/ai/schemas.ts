@@ -32,7 +32,7 @@ export const formatEmailSummarySchema = {
           description: "A list of urgent action items if applicable",
         },
       },
-      required: ["overview", "importantEmails"],
+      required: ["overview", "importantEmails", "urgentActions"],
       additionalProperties: false,
     },
   },
@@ -63,23 +63,23 @@ export const analyzeEmailSchema = {
         deadline: {
           type: "string",
           description:
-            "The deadline OR time of the event from email, if applicable. Return in format: HH:mm, DD/MM/YYYY OR DD/MM/YYYY. Do not convet time zones, just extract the data from the email",
+            "The deadline OR time of the event from email, if applicable. Return in format: HH:mm, DD/MM/YYYY OR DD/MM/YYYY. Do not convet time zones, just extract the data from the email. Empty if not applicable",
         },
-        quickReponses: {
+        /*quickReponses: {
           type: "array",
           items: { type: "string" },
           description:
             "If this is human written email, return list of quick and short responses based on the email content. IMPORTANT: Max 3 items with up to 20 words each",
-        },
+        },*/
         actionSteps: {
           type: "array",
           items: { type: "string" },
           description:
-            "List of concrete action steps based on the email content, with deadlines if applicable. Ignore if useless in this case! IMPORTANT: Max 5 items",
+            "List of concrete action steps based on the email content, with deadlines if applicable. Ignore if useless in this case! IMPORTANT: Max 5 items, empty if not applicable",
         },
         importantUrls: {
           description:
-            "If email contains special URL to follow (confirmation, etc), extract them (+Text to display for the action link, if applicable) and provide here. Extract full links, not just domains! IMPORTANT: Max 5 items",
+            "If email contains special URL to follow (confirmation, etc), extract them (+Text to display for the action link, if applicable) and provide here. Extract full links, not just domains! IMPORTANT: Max 5 items, empty if not applicable",
           type: "array",
           items: {
             type: "object",
@@ -92,7 +92,14 @@ export const analyzeEmailSchema = {
           },
         },
       },
-      required: ["category", "summary", "importance"],
+      required: [
+        "category",
+        "summary",
+        "importance",
+        "actionSteps",
+        "deadline",
+        "importantUrls",
+      ],
       additionalProperties: false,
     },
   },
