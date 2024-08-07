@@ -26,8 +26,6 @@ export const analyzeEmailSchema = z.object({
   summary: z.string().describe("A brief summary of the email content"),
   importance: z
     .number()
-    .min(0)
-    .max(5)
     .describe("The importance rating of the email from 0 to 5"),
   deadline: z
     .string()
