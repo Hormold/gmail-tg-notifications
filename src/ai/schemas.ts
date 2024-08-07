@@ -20,6 +20,8 @@ export const formatEmailSummarySchema = {
               importance: { type: "number" },
               summary: { type: "string" },
             },
+            additionalProperties: false,
+            required: ["title", "import", "summary"],
           },
           description:
             "A list of important emails with titles, importance ratings, summaries, and Telegram links",
@@ -86,6 +88,7 @@ export const analyzeEmailSchema = {
               text: { type: "string" },
             },
             required: ["url", "text"],
+            additionalProperties: false,
           },
         },
       },
