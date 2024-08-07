@@ -65,22 +65,19 @@ export const analyzeEmailSchema = {
         quickReponses: {
           type: "array",
           items: { type: "string" },
-          maxContains: 3,
           description:
-            "If this is human written email, return list of quick and short responses based on the email content. Max 3 items with up to 20 words each",
+            "If this is human written email, return list of quick and short responses based on the email content. IMPORTANT: Max 3 items with up to 20 words each",
         },
         actionSteps: {
           type: "array",
           items: { type: "string" },
-          maxContains: 5,
           description:
-            "List of concrete action steps based on the email content, with deadlines if applicable. Ignore if useless in this case!!",
+            "List of concrete action steps based on the email content, with deadlines if applicable. Ignore if useless in this case! IMPORTANT: Max 5 items",
         },
         importantUrls: {
           description:
-            "If email contains special URL to follow (confirmation, etc), extract them (+Text to display for the action link, if applicable) and provide here. Extract full links, not just domains!",
+            "If email contains special URL to follow (confirmation, etc), extract them (+Text to display for the action link, if applicable) and provide here. Extract full links, not just domains! IMPORTANT: Max 5 items",
           type: "array",
-          maxContains: 5,
           items: {
             type: "object",
             properties: {

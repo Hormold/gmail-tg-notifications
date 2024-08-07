@@ -61,6 +61,7 @@ For important urls: extract realy useful links and important things, limit it to
 Do not include useless and non helpful links like privacy policy, terms, marketing links, etc.
 
 Important: All marketing emails without real good deals should be rated as 0.
+No more then 3 quick responses based on the email content, no more than 5 action steps, and no more than 5 important urls!
 
 Consider that emails with good discounts or beneficial promotions may receive a higher rating. But you should realy mark spam as spam`,
         },
