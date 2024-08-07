@@ -31,6 +31,7 @@ export const formatEmailSummarySchema = {
         },
       },
       required: ["overview", "importantEmails"],
+      additionalProperties: false,
     },
   },
 } as const;
@@ -89,6 +90,7 @@ export const analyzeEmailSchema = {
         },
       },
       required: ["category", "summary", "importance"],
+      additionalProperties: false,
     },
   },
 } as const;
