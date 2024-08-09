@@ -21,7 +21,7 @@ export const formatEmailSummarySchema = {
               summary: { type: "string" },
             },
             additionalProperties: false,
-            required: ["title", "import", "summary"],
+            required: ["title", "importance", "summary"],
           },
           description:
             "A list of important emails with titles, importance ratings, summaries, and Telegram links",
