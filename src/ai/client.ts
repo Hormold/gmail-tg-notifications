@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { success } from "@service/logging";
 
 const normalOpenAi = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,5 +8,7 @@ const normalOpenAi = new OpenAI({
   //  "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
   //},
 });
+
+success(`Using OpenAI API key: ${process.env.OPENAI_API_KEY}`);
 
 export const openai = normalOpenAi;
