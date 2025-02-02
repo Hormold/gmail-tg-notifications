@@ -25,6 +25,10 @@ import { FindUserById, SetUserTimeUTCOffset } from "@db/controller/user";
 import { generateGroupEmailSummary } from "@ai/report";
 import { FindHistoryByTelegramMessageId } from "@db/controller/history";
 import { getTimezoneOffset } from "@service/utils";
+import accounts, {
+  description as accountsCommand,
+  deleteAccount,
+} from "@commands/accounts";
 
 export const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN);
 
@@ -172,6 +176,12 @@ bot.hears(/^\/delete_token_([a-zA-Z0-9]+)$/, async (ctx) => {
   await deleteTokenCb(ctx, id);
 });
 
+bot.command(accountsCommand.command, accounts);
+bot.hears(/^\/delete_account_(\d+)$/, async (ctx) => {
+  const index = parseInt(ctx.match[1]);
+  await deleteAccount(ctx, index);
+});
+
 bot.help(help);
 
 bot.telegram
@@ -183,6 +193,7 @@ bot.telegram
     getIdCommand,
     deleteTokenCommand,
     paymentCommand,
+    accountsCommand,
   ])
   .catch((e) => error(e));
 
