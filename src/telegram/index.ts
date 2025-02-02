@@ -12,12 +12,12 @@ import help, { description as helpCommand } from "@commands/help";
 import payment, {
   description as paymentCommand,
   onSuccessfulPayment,
-  stage as subscriptionScene,
+  subscriptionScene,
 } from "@commands/subscribe";
 import deleteTokenCb, {
   description as deleteTokenCommand,
 } from "@commands/deleteToken";
-import { stage as authGmailStage } from "@commands/connectGmail";
+import { gmailConnectScene } from "@commands/connectGmail";
 import blackListEmail from "@commands/blackList";
 import showFullText from "@commands/showFullText";
 import deleteMessage from "./commands/deleteMessage";
@@ -29,8 +29,12 @@ import { getTimezoneOffset } from "@service/utils";
 export const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN);
 
 bot.use(session());
-bot.use(authGmailStage.middleware());
-bot.use(subscriptionScene.middleware());
+const stage = new Scenes.Stage<Scenes.SceneContext>([
+  subscriptionScene,
+  gmailConnectScene,
+]);
+
+bot.use(stage.middleware());
 bot.start(startCb);
 bot.command(connectGmailCommand.command, connectGmailCb);
 bot.command(setChatsIdCommand.command, setChatsId);

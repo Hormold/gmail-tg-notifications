@@ -3,7 +3,7 @@ import { BotCommand } from "@service/types";
 import { FindUserById, UpdateUser } from "@controller/user";
 import { SUBSCRIBTIONS, TRIAL_PERIOD } from "@service/projectConstants";
 
-const subscriptionScene = new Scenes.BaseScene<Scenes.SceneContext>(
+export const subscriptionScene = new Scenes.BaseScene<Scenes.SceneContext>(
   "subscription"
 );
 
@@ -126,8 +126,6 @@ export const onSuccessfulPayment = async (ctx) => {
 };
 
 subscriptionScene.command("cancel", Scenes.Stage.leave<Scenes.SceneContext>());
-
-export const stage = new Scenes.Stage<Scenes.SceneContext>([subscriptionScene]);
 
 const startSubscription: Middleware<Scenes.SceneContext> = async function (
   ctx

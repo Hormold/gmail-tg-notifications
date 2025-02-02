@@ -14,7 +14,9 @@ import { getEmailAdress, watchMails } from "@gmail/index";
 import { BotCommand, IAuthObject } from "@service/types";
 
 const SCENE_ID = "connect";
-const gmailConnectScene = new Scenes.BaseScene<Scenes.SceneContext>(SCENE_ID);
+export const gmailConnectScene = new Scenes.BaseScene<Scenes.SceneContext>(
+  SCENE_ID
+);
 gmailConnectScene.enter(async (ctx) => {
   const user = await FindUserById(ctx.chat.id);
   if (!user) {
@@ -123,8 +125,6 @@ gmailConnectScene.on("text", async (ctx) => {
     return ctx.scene.leave();
   }
 });
-
-export const stage = new Scenes.Stage<Scenes.SceneContext>([gmailConnectScene]);
 
 const connectGmail: Middleware<Scenes.SceneContext> = async function (ctx) {
   const user = await checkUser(ctx);
