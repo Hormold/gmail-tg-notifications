@@ -13,7 +13,8 @@ import {
 import { getEmailAdress, watchMails } from "@gmail/index";
 import { BotCommand, IAuthObject } from "@service/types";
 
-const gmailConnectScene = new Scenes.BaseScene<Scenes.SceneContext>("connect");
+const SCENE_ID = "connect";
+const gmailConnectScene = new Scenes.BaseScene<Scenes.SceneContext>(SCENE_ID);
 gmailConnectScene.enter(async (ctx) => {
   const user = await FindUserById(ctx.chat.id);
   if (!user) {
@@ -128,7 +129,14 @@ export const stage = new Scenes.Stage<Scenes.SceneContext>([gmailConnectScene]);
 const connectGmail: Middleware<Scenes.SceneContext> = async function (ctx) {
   const user = await checkUser(ctx);
   if (user !== false) {
-    ctx.scene.enter("connect");
+    try {
+      await ctx.scene.enter(SCENE_ID);
+    } catch (error) {
+      console.error("Error entering scene:", error);
+      console.log(ctx.scene);
+      console.log(gmailConnectScene);
+      console.log(ctx.scene.session);
+    }
   }
 };
 
