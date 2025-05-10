@@ -29,6 +29,7 @@ import accounts, {
   description as accountsCommand,
   deleteAccount,
 } from "@commands/accounts";
+import gift from "@commands/gift";
 
 export const bot = new Telegraf<Scenes.SceneContext>(process.env.BOT_TOKEN);
 
@@ -181,6 +182,9 @@ bot.hears(/^\/delete_account_(\d+)$/, async (ctx) => {
   const index = parseInt(ctx.match[1]);
   await deleteAccount(ctx, index);
 });
+
+// Gift subscription (admin only)
+bot.hears(/^\/gift_(\d+)$/, gift);
 
 bot.help(help);
 
