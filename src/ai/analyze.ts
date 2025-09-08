@@ -44,26 +44,43 @@ Body:
 ${email.message}
 
 ------
+BE RUTHLESS WITH MARKETING SPAM. The user is SICK of irrelevant promotional bullshit.
+
 Provide the following information via structured output (function call):
 1. Category of the email: Personal, Work, Finance, Marketing, Bills, Other (specify)
 2. Brief summary of the content (no more than 20 words)
 3. Importance rating from 0 to 5, where:
-   0 - spam or useless marketing email (also newsletter, useless rewards or promotions, etc)
-   1-2 - low importance (imporant notifications from services, etc)
-   3-4 - medium importance (work-related, personal, etc)
-   5 - high importance or requires immediate attention (urgent, important deadlines, etc)
-4. Concrete action steps (up to 3) based on the email content. Include specific deadlines or time frames if applicable.
-5. If email contains special urls or links, extract them and provide as a separate output
+   0 - ANY marketing email, newsletter, promotion, event announcement, or unsolicited message (DEFAULT FOR MOST EMAILS)
+   1 - Important service notifications (password resets, account issues, payment confirmations)
+   2 - Work-related or personal communications that require awareness but not immediate action
+   3 - Important work emails or personal matters requiring action within days
+   4 - Urgent work/personal matters requiring action within 24 hours
+   5 - CRITICAL emergencies requiring immediate attention (security breaches, urgent deadlines TODAY)
+4. Concrete action steps (up to 3) ONLY if rating is 2 or higher. For 0-1 emails, provide NO actions.
+5. If email contains verification codes, passwords, or critical links, extract them.
 
-Spam examples: newsletters, irrelevant marketing emails, or unsolicited messages.
-Mandatory: if email contains some VERIFICATION code (or any other important code), extract it and add it to summary! This is very important for the user to not miss it.
-For important urls: extract realy useful links and important things, limit it to 5 and sort by importance.
-Do not include useless and non helpful links like privacy policy, terms, marketing links, etc.
+AUTOMATIC 0/5 RATING FOR:
+- ANY newsletter (regardless of content quality)
+- Event announcements and meetups 
+- Product updates and feature announcements
+- Marketing emails with discounts/coupons
+- AI/tech newsletters and industry updates
+- Company blog posts and content marketing
+- Social media notifications
+- Any email trying to sell something or promote events
 
-Important: All marketing emails without real good deals should be rated as 0.
-No more then 3 quick responses based on the email content, no more than 5 action steps, and no more than 5 important urls!
+ONLY rate higher than 0 if it's:
+- Direct personal communication
+- Work-related from colleagues/clients
+- Critical service notifications (security, billing issues)
+- Legal/government communications
+- Medical/health related
+- Financial statements/alerts
 
-Consider that emails with good discounts or beneficial promotions may receive a higher rating. But you should realy mark spam as spam`,
+Mandatory: Extract verification codes and add to summary.
+For important urls: Only extract if rating ≥ 2. No marketing/promotional links ever.
+
+The user wants ZERO marketing noise. Be aggressive about marking things as spam.`,
         },
       ],
       tool_choice: "required",
