@@ -1,5 +1,6 @@
 import { Context } from "telegraf";
 import { FindUserById, UpdateUser } from "@controller/user";
+import { bot } from "..";
 
 const gift = async (ctx: Context) => {
   const fromId = ctx.from?.id?.toString();
@@ -42,6 +43,10 @@ const gift = async (ctx: Context) => {
   if (success) {
     await ctx.reply(
       `Gifted 10-year subscription to ${targetId}, valid until ${endDate.toDateString()}`
+    );
+    await bot.telegram.sendMessage(
+      user.telegramID,
+      `You have been gifted a 10-year subscription to ${targetId}, valid until ${endDate.toDateString()}`
     );
   } else {
     await ctx.reply("Failed to gift subscription");
