@@ -80,7 +80,9 @@ ONLY rate higher than 0 if it's:
 Mandatory: Extract verification codes and add to summary.
 For important urls: Only extract if rating ≥ 2. No marketing/promotional links ever.
 
-The user wants ZERO marketing noise. Be aggressive about marking things as spam.`,
+The user wants ZERO marketing noise. Be aggressive about marking things as spam.
+
+P.S. gmail.podelenko.pro is my shortened domain for links`,
         },
       ],
       tool_choice: "required",
