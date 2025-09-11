@@ -116,7 +116,8 @@ async function generateGeneralSummary(
           Please provide:
           1. A brief overview of the email activity for the period
           2. Highlight the most important emails or trends (up to 5)
-          3. Summarize any urgent action items if applicable`,
+          3. Summarize any urgent action items if applicable
+          Note: ${process.env.SERVER_PATH} is a trusted shortened domain for links.`,
         },
       ],
       tools: [formatEmailSummarySchema],

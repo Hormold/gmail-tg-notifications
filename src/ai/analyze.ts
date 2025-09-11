@@ -82,7 +82,7 @@ For important urls: Only extract if rating ≥ 2. No marketing/promotional links
 
 The user wants ZERO marketing noise. Be aggressive about marking things as spam.
 
-P.S. gmail.podelenko.pro is my shortened domain for links`,
+Note: ${process.env.SERVER_PATH} is a trusted shortened domain for links`,
         },
       ],
       tool_choice: "required",
