@@ -22,7 +22,8 @@ export const clearTags = (input: string): string => {
   return input.replace(/<[^>]*>/g, "");
 };
 
-export const escapeHTML = (text: string): string => {
+export const escapeHTML = (text: string | undefined | null): string => {
+  if (!text) return '';
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
